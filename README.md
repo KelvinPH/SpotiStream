@@ -128,10 +128,10 @@ Create `screenshots/` and add PNGs, then reference like:
 
 | Preset | Preview |
 |---|---|
-| Record + Spotify | ![Record + Spotify](./screenshots/record-spotify.png) |
-| Card + OBS Dark | ![Card + OBS Dark](./screenshots/card-obsdark.png) |
-| Bar + Minimal | ![Bar + Minimal](./screenshots/bar-minimal.png) |
-| Stacked + Old Radio | ![Stacked + Old Radio](./screenshots/stacked-oldradio.png) |
+| Record + Spotify | ![Record + Spotify](./record-spotify.png) |
+| Card + OBS Dark | ![Card + OBS Dark](./card-obsdark.png) |
+| Bar + Minimal | ![Bar + Minimal](./bar-minimal.png) |
+| Stacked + Old Radio | ![Stacked + Old Radio](./stacked-oldradio.png) |
 
 > Tip: In OBS, right-click preview → **Screenshot**.
 
