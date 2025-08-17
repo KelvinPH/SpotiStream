@@ -133,8 +133,6 @@ Create `screenshots/` and add PNGs, then reference like:
 | Bar + Minimal | ![Bar + Minimal](./bar-minimal.png) |
 | Stacked + Old Radio | ![Stacked + Old Radio](./stacked-oldradio.png) |
 
-> Tip: In OBS, right-click preview → **Screenshot**.
-
 ---
 
 ## ❓ Troubleshooting
