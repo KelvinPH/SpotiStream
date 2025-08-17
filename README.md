@@ -7,7 +7,7 @@ https://kelvinph.github.io/SpotiStream/overlay.html
 
 ---
 
-## 🚀 Quick Start (Hosted)
+## 🚀 Quick Start
 
 1) **Create a Spotify app** → https://developer.spotify.com/dashboard/applications  
 2) App **Settings** → **Redirect URIs** → **Add** (exactly): https://kelvinph.github.io/SpotiStream/overlay.html > Save.  
@@ -156,21 +156,9 @@ Make sure Spotify is actively playing on your account. (Premium **not** required
 
 ---
 
-## 🛠️ Dev / Self-hosting
-
-- The overlay is a single `overlay.html` (no build, no server).  
-- Host anywhere (GitHub Pages, Netlify, Vercel). Just make the Spotify **Redirect URI** equal to the exact hosted URL (including `/overlay.html` and case).  
-- For local dev, use any local webserver and set the Redirect URI to your local URL (e.g. `http://localhost:14565/overlay.html`).
-
----
 
 ## 🔒 Privacy
 
 Uses **OAuth PKCE** in the browser. No client secret. Tokens are stored locally in your browser/OBS environment.
 
----
-
-## 🧾 License
-
-MIT
 
