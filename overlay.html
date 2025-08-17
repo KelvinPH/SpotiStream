@@ -7,8 +7,8 @@
 <style>
   :root{
     /* Visual tokens */
-    --bg: rgba(0,0,0,0);                 /* overall background (keep transparent for stream) */
-    --panel: rgba(18,18,18,0.72);        /* panel glass */
+    --bg: rgba(0,0,0,0);                  /* keep transparent for streams */
+    --panel: rgba(18,18,18,0.72);
     --text: #eaeaea;
     --muted:#b6bcc4;
     --accent:#1db954;
@@ -17,70 +17,56 @@
     /* Sizing */
     --radius: 16px;
     --blur: 8px;
-    --disc: 200px;                       /* default disc/cover size */
+    --disc: 200px;                        /* disc/cover size; override with &disc= */
     --bar-h: 6px;
-    --gutter: 16px;
+    --gap: 22px;
+    --max-w: 1100px;                      /* content max width */
 
     /* Type */
     --font: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-    --title-size: clamp(18px, 2.6vw, 22px);
-    --artist-size: clamp(12px, 1.8vw, 14px);
+    --title-size: clamp(18px, 2.8vw, 24px);
+    --artist-size: clamp(12px, 2vw, 15px);
   }
 
   html,body{height:100%}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font: 500 14px/1.45 var(--font);
+    font: 600 14px/1.45 var(--font);
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     overflow:hidden;
   }
 
-  /* ===== Container (never clips UI; nice shadow; responsive) ===== */
+  /* ===== Panel wrapper (glass, rounded, centered content) ===== */
   .wrap{
-    width:100%; height:100%;
-    box-sizing:border-box;
-    padding: var(--gutter);
-    display:grid; gap: var(--gutter);
-    align-items:center;
+    width:100%; height:100%; box-sizing:border-box; padding:16px;
+    display:flex; align-items:center; justify-content:center;
     backdrop-filter: blur(var(--blur)) saturate(120%);
-    background: var(--panel);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+
+  /* Inner grid holds the actual layout; keeps a max width */
+  .inner{
+    width:100%; max-width: var(--max-w);
+    display:grid; gap: var(--gap); align-items:center;
   }
 
   /* ===== Layouts ===== */
-  /* Record: disc left, meta right (default) */
-  .layout-record.wrap{
-    grid-template-columns: var(--disc) 1fr;
-    grid-template-areas: "disc meta";
-  }
-
-  /* Card: rectangular art + meta */
-  .layout-card.wrap{
-    grid-template-columns: var(--disc) 1fr;
-    grid-template-areas: "art meta";
-  }
-
-  /* Bar: text-only strip */
-  .layout-bar.wrap{
-    grid-template-columns: 1fr;
-    grid-template-areas: "meta";
-    padding: 12px 16px;
+  .layout-record.inner{ grid-template-columns: var(--disc) minmax(320px, 1fr); grid-template-areas: "disc meta"; }
+  .layout-card.inner  { grid-template-columns: var(--disc) minmax(320px, 1fr); grid-template-areas: "art  meta"; }
+  .layout-bar.inner   { grid-template-columns: 1fr; grid-template-areas: "meta"; padding: 4px 0; }
+  .layout-stacked.inner{
+    grid-template-columns: 1fr; grid-template-areas: "disc" "meta";
+    place-items:center; text-align:center;
   }
   .layout-bar .pill, .layout-bar .disc, .layout-bar .artbox { display:none }
 
-  /* Stacked: disc top, meta below */
-  .layout-stacked.wrap{
-    grid-template-columns: 1fr;
-    grid-template-areas: "disc" "meta";
-    justify-items:center;
-    text-align:center;
-  }
-  .layout-stacked .meta{ width:min(560px, 100%) }
-  .layout-stacked .time{ justify-content:center; gap:16px }
+  /* ===== Z-order so text never hides under disc ===== */
+  .meta{ grid-area:meta; min-width:0; display:grid; gap:10px; align-content:center; z-index:2 }
+  .disc, .artbox{ z-index:1 }
 
   /* ===== Disc (vinyl) ===== */
-  .disc{ grid-area:disc; position:relative; width:var(--disc); height:var(--disc); border-radius:50%;
+  .disc{
+    grid-area:disc; position:relative; width:var(--disc); height:var(--disc); border-radius:50%;
     background:
       radial-gradient(circle at 50% 50%, rgba(255,255,255,0.07) 0 6%, transparent 6%),
       repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0 1px, transparent 2px 6px),
@@ -88,29 +74,32 @@
     box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 12px 30px rgba(0,0,0,0.4);
     display:grid; place-items:center; overflow:hidden;
   }
-  /* rotating highlights */
-  .disc::before{ content:""; position:absolute; inset:-18%;
+  /* rotating sheen */
+  .disc::before{
+    content:""; position:absolute; inset:-18%;
     background:
       radial-gradient(circle at 18% 22%, rgba(255,255,255,0.08), transparent 50%),
       radial-gradient(circle at 80% 78%, rgba(255,255,255,0.06), transparent 50%);
-    border-radius:50%; z-index:1;
-    animation: sheen 9s linear infinite;
+    border-radius:50%; z-index:1; animation: sheen 9s linear infinite;
   }
-  @keyframes sheen{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes sheen{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-  /* Center label uses CSS background to avoid alt-text leaks */
-  .label-img{ width:62%; height:62%; border-radius:50%; background:#222 center/cover no-repeat;
+  /* Center label uses CSS background (no alt-text leak) */
+  .label-img{
+    width:62%; height:62%; border-radius:50%; background:#222 center/cover no-repeat;
     box-shadow: 0 2px 10px rgba(0,0,0,0.35); position:relative; z-index:2;
   }
+  /* Keep label upright if &label=static */
+  .label-static .label-img{ animation: spin 9s linear infinite reverse; }
   /* Center hole */
   .disc::after{ content:""; position:absolute; width:8px; height:8px; border-radius:50%;
     background:#000; box-shadow: 0 0 0 1px rgba(255,255,255,0.28); z-index:3;
   }
-  /* Spin only when allowed */
+  /* Spin (disc + sheen) only when allowed */
   .spin .label-img, .spin::before{ animation: spin 9s linear infinite }
-  @keyframes spin{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-  /* Decorative tonearm (hidden on small or non-record layouts) */
+  /* Tonearm (decor; hidden on small or non-record layouts) */
   .tonearm{ position:absolute; right:-26px; top:14px; width:136px; height:26px;
     transform:rotate(21deg); transform-origin:left center; pointer-events:none;
     filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
@@ -120,12 +109,12 @@
   .tonearm .joint{ position:absolute; left:-8px; top:6px; width:14px; height:14px; border-radius:50%; background:#a7a7a7; box-shadow: inset 0 1px 2px rgba(0,0,0,0.45) }
 
   /* Rectangular art for card layout */
-  .artbox{ grid-area:art; width:var(--disc); height:var(--disc); border-radius:12px; overflow:hidden;
+  .artbox{
+    grid-area:art; width:var(--disc); height:var(--disc); border-radius:12px; overflow:hidden;
     background:#222 center/cover no-repeat; box-shadow: 0 10px 30px rgba(0,0,0,0.38);
   }
 
-  /* ===== Meta / text / progress ===== */
-  .meta{ grid-area:meta; min-width:0; display:grid; gap:10px; align-content:center }
+  /* ===== Text / progress ===== */
   .title{
     font-size:var(--title-size); font-weight:800; letter-spacing:0.2px;
     white-space:nowrap; overflow:hidden;
@@ -152,28 +141,29 @@
   .input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color:var(--text) }
   .hidden{ display:none !important }
 
-  /* Compact spacing (any layout) */
-  .compact.wrap{ padding:10px 12px; gap:12px }
-  .compact .title{ --title-size: clamp(16px,2.1vw,20px) }
-  .compact .artist{ --artist-size: clamp(11px,1.6vw,13px) }
+  /* Compact mode */
+  .compact.wrap{ padding:10px 12px }
+  .compact .inner{ gap: 14px }
+  .compact .title{ --title-size: clamp(16px,2.2vw,20px) }
+  .compact .artist{ --artist-size: clamp(11px,1.7vw,13px) }
 
-  /* Small widths: prevent crowding automatically */
-  @media (max-width: 540px){
+  /* Small widths: shrink disc & hide tonearm */
+  @media (max-width: 560px){
     :root{ --disc: 150px }
     .tonearm{ display:none }
   }
 </style>
 </head>
 <body>
-  <div id="root" class="layout-record">
-    <div id="card" class="wrap">
+  <div id="card" class="wrap">
+    <div id="inner" class="inner layout-record">
       <!-- Disc (default) -->
       <div id="disc" class="disc spin">
         <div id="labelImg" class="label-img"></div>
         <div id="tonearm" class="tonearm"><div class="arm"></div><div class="head"></div><div class="joint"></div></div>
       </div>
 
-      <!-- Card layout art -->
+      <!-- Art for CARD layout -->
       <div id="artbox" class="artbox hidden"></div>
 
       <!-- Meta -->
@@ -189,16 +179,14 @@
           <div class="field"><label for="clientId">Spotify Client ID</label><input id="clientId" class="input" placeholder="paste your Client ID"/></div>
           <button id="save" class="btn">Save Client ID</button>
           <button id="connect" class="btn">Connect to Spotify</button>
-          <small class="artist">In your Spotify app, the Redirect URI must exactly match this page URL (ending with <code>/overlay.html</code>).</small>
+          <small class="artist">Redirect URI must exactly match this page URL (ends with <code>/overlay.html</code>).</small>
         </div>
       </div>
     </div>
   </div>
 
 <script>
-  /* ==========================
-     Distinct Themes
-     ========================== */
+  /* ---------- Distinct themes ---------- */
   const THEMES = {
     spotify:  { panel:'rgba(18,18,18,0.72)', text:'#eaeaea', muted:'#b6bcc4', accent:'#1db954', radius:16, blur:8 },
     obsdark:  { panel:'rgba(24,24,27,0.72)', text:'#e6e7ea', muted:'#9da3ad', accent:'#22d3ee', radius:14, blur:6 },
@@ -212,72 +200,65 @@
   };
 
   const FONT_URLS = {
-    inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap',
-    rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@600;800&display=swap',
-    montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap',
-    poppins: 'https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap',
-    firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600;800&display=swap'
+    inter:'https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap',
+    rubik:'https://fonts.googleapis.com/css2?family=Rubik:wght@600;800&display=swap',
+    montserrat:'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap',
+    poppins:'https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap',
+    firasans:'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600;800&display=swap'
   };
 
-  function applyVars(obj){
+  function applyVars(v){
     const r = document.documentElement.style;
-    if (obj.panel) r.setProperty('--panel', obj.panel);
-    if (obj.text)  r.setProperty('--text', obj.text);
-    if (obj.muted) r.setProperty('--muted', obj.muted);
-    if (obj.accent)r.setProperty('--accent', obj.accent);
-    if (obj.radius!=null) r.setProperty('--radius', obj.radius+'px');
-    if (obj.blur!=null)   r.setProperty('--blur',   obj.blur+'px');
-    if (obj.bar!=null)    r.setProperty('--bar-h',  obj.bar+'px');
-    if (obj.shadow===0)   r.setProperty('--shadow','none');
+    if (v.panel) r.setProperty('--panel', v.panel);
+    if (v.text)  r.setProperty('--text',  v.text);
+    if (v.muted) r.setProperty('--muted', v.muted);
+    if (v.accent)r.setProperty('--accent',v.accent);
+    if (v.radius!=null) r.setProperty('--radius', v.radius+'px');
+    if (v.blur!=null)   r.setProperty('--blur',   v.blur+'px');
+    if (v.bar!=null)    r.setProperty('--bar-h',  v.bar+'px');
+    if (v.shadow===0)   r.setProperty('--shadow','none');
   }
 
   function applyFont(name){
     if (!name) return;
-    const key = name.toLowerCase();
-    const href = FONT_URLS[key];
+    const key = name.toLowerCase(); const href = FONT_URLS[key];
     if (href){
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = href;
-      document.head.appendChild(link);
+      const link = document.createElement('link'); link.rel='stylesheet'; link.href=href; document.head.appendChild(link);
       const fam = {inter:'"Inter"', rubik:'"Rubik"', montserrat:'"Montserrat"', poppins:'"Poppins"', firasans:'"Fira Sans"'}[key];
       if (fam) document.documentElement.style.setProperty('--font', `${fam}, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`);
     }
   }
 
-  /* ==========================
-     URL Controls (layout/theme/knobs)
-     ========================== */
+  /* ---------- URL controls ---------- */
   const p = new URLSearchParams(location.search);
+  const inner = document.getElementById('inner');
+
+  // Layout (default record)
   const layout = (p.get('layout') || 'record').toLowerCase();
-  const root = document.getElementById('root');
-  root.className = `layout-${layout}`;
+  inner.className = `inner layout-${layout}`;
+  if (layout !== 'record') document.getElementById('tonearm').style.display='none';
+  if (layout === 'card'){ document.getElementById('disc').style.display='none'; document.getElementById('artbox').classList.remove('hidden'); }
 
-  // For non-record layouts, hide tonearm + disc or art appropriately
-  const discEl = document.getElementById('disc');
-  const artbox = document.getElementById('artbox');
-  const tonearm = document.getElementById('tonearm');
-  if (layout === 'card'){ discEl.style.display='none'; artbox.classList.remove('hidden'); }
-  if (layout !== 'record'){ tonearm.style.display='none'; }
-
+  // Theme
   const themeKey = (p.get('theme') || 'spotify').toLowerCase();
   if (THEMES[themeKey]) applyVars(THEMES[themeKey]);
 
-  // Fine-grained overrides
+  // Fine overrides
   const map = { accent:'--accent', panel:'--panel', text:'--text', muted:'--muted' };
   for (const [k,css] of Object.entries(map)){ const v=p.get(k); if (v) document.documentElement.style.setProperty(css, v); }
   if (p.get('radius')) document.documentElement.style.setProperty('--radius', p.get('radius')+'px');
   if (p.get('blur'))   document.documentElement.style.setProperty('--blur',   p.get('blur')+'px');
   if (p.get('bar'))    document.documentElement.style.setProperty('--bar-h',  p.get('bar')+'px');
+  if (p.get('disc')||p.get('art')) document.documentElement.style.setProperty('--disc', (p.get('disc')||p.get('art'))+'px');
   if (p.get('shadow')==='0') document.documentElement.style.setProperty('--shadow','none');
-
   if (p.get('compact')==='1') document.getElementById('card').classList.add('compact');
-  window.__forceSpin = p.get('spin'); // '0' to stop spinning
+  if ((p.get('label')||'').toLowerCase()==='static') document.getElementById('disc').classList.add('label-static');
+  window.__forceSpin = p.get('spin'); // '0' disables spin
+
+  // Fonts
   applyFont(p.get('font'));
 
-  /* ==========================
-     Spotify Logic
-     ========================== */
+  /* ---------- Spotify logic ---------- */
   const SCOPES = ['user-read-playback-state','user-read-currently-playing'];
   const TOKEN_URL = 'https://accounts.spotify.com/api/token';
   const AUTH_URL  = 'https://accounts.spotify.com/authorize';
@@ -286,7 +267,7 @@
   const el = id=>document.getElementById(id);
   const titleEl=el('title'), artistEl=el('artist'), statusEl=el('status'),
         barEl=el('bar'), elapsedEl=el('elapsed'), durationEl=el('duration'),
-        labelDiv = el('labelImg');
+        labelDiv=el('labelImg'), artbox=el('artbox'), discEl=el('disc');
 
   let accessToken=null, refreshToken=null, expiresAt=0;
   let playing=false, progressMs=0, durationMs=0;
@@ -295,10 +276,10 @@
 
   async function sha256(str){ const buf=new TextEncoder().encode(str); const d=await crypto.subtle.digest('SHA-256', buf); return new Uint8Array(d); }
   function base64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-  function randString(len=64){ const a=new Uint8Array(len); crypto.getRandomValues(a); return base64url(a).slice(0,len); }
+  function randString(n=64){ const a=new Uint8Array(n); crypto.getRandomValues(a); return base64url(a).slice(0,n); }
 
   function msToClock(ms){ ms=Math.max(0,Math.floor(ms)); const t=Math.floor(ms/1000); const m=Math.floor(t/60); const s=t%60; return `${m}:${s.toString().padStart(2,'0')}`; }
-  function setProgress(p){ const c=Math.max(0,Math.min(1,p)); barEl.style.inset = `0 ${(1-c)*100}% 0 0`; elapsedEl.textContent=msToClock(progressMs); durationEl.textContent=msToClock(durationMs); }
+  function setProgress(p){ const c=Math.max(0,Math.min(1,p)); barEl.style.inset=`0 ${(1-c)*100}% 0 0`; elapsedEl.textContent=msToClock(progressMs); durationEl.textContent=msToClock(durationMs); }
   function setStatus(t){ statusEl.textContent=t; }
   function showSetup(b){ document.getElementById('setup').classList.toggle('hidden', !b); }
 
@@ -348,7 +329,7 @@
     artistEl.textContent='—';
     setStatus('Paused');
     durationMs=progressMs=0; setProgress(0);
-    document.getElementById('disc').classList.remove('spin');
+    discEl.classList.remove('spin');
     labelDiv.style.backgroundImage = '';
     artbox.style.backgroundImage = '';
   }
@@ -357,11 +338,9 @@
     const item=payload?.item;
     if(!item){ renderNothing(); return; }
 
-    const img = (item.album?.images?.[0]?.url)||'';
-    if (img){
-      labelDiv.style.backgroundImage = `url('${img}')`;
-      artbox.style.backgroundImage   = `url('${img}')`;
-    }
+    // Pick biggest image available
+    const img = (item.album?.images?.[0]?.url) || (item.album?.images?.[1]?.url) || (item.album?.images?.[2]?.url) || '';
+    if (img){ labelDiv.style.backgroundImage = `url('${img}')`; artbox.style.backgroundImage = `url('${img}')`; }
 
     const artists=(item.artists||[]).map(a=>a.name).join(', ');
     titleEl.textContent = item.name || 'Untitled';
@@ -370,9 +349,8 @@
     playing = !!payload.is_playing;
     setStatus(playing?'Playing':'Paused');
 
-    const spinFlag = window.__forceSpin;
-    const allowSpin = !(spinFlag==='0');
-    document.getElementById('disc').classList.toggle('spin', playing && allowSpin);
+    const allowSpin = !(window.__forceSpin==='0');
+    discEl.classList.toggle('spin', playing && allowSpin);
 
     durationMs=item.duration_ms||0;
     progressMs=payload.progress_ms||0;
@@ -394,19 +372,16 @@
     connectBtn.onclick = async () => {
       const cid = localStorage.getItem(K.clientId);
       if(!cid) return alert('Save your Client ID first.');
-      const verifier = (() => {
-        const arr = new Uint8Array(64); crypto.getRandomValues(arr);
-        return btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'').slice(0,64);
-      })();
+      const verifier = randString(64);
       const challenge = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
         .then(buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''));
       localStorage.setItem(K.verifier, verifier);
 
-      const a = new URL(AUTH_URL);
+      const a = new URL('https://accounts.spotify.com/authorize');
       a.searchParams.set('response_type','code');
       a.searchParams.set('client_id', cid);
       a.searchParams.set('redirect_uri', REDIRECT_URI);
-      a.searchParams.set('scope', SCOPES.join(' '));
+      a.searchParams.set('scope', ['user-read-playback-state','user-read-currently-playing'].join(' '));
       a.searchParams.set('code_challenge_method','S256');
       a.searchParams.set('code_challenge', challenge);
       window.location.href = a.toString();
@@ -418,14 +393,13 @@
     await ensureToken();
     showSetup(!accessToken);
 
-    // Poll + tick
+    // Poll + smooth progress
     setInterval(async ()=>{
       const data = await getCurrentlyPlaying();
       if(!data){ renderNothing(); return; }
       renderTrack(data);
     }, 3000);
 
-    // Smooth progress
     setInterval(()=>{
       if(playing && durationMs>0){
         progressMs += 250;
