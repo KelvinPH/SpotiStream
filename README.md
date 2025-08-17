@@ -1,7 +1,7 @@
 # SpotiStream – Spotify Now Playing Overlay for Streamers
 
 **Hosted overlay:**
-https://<username>.github.io/spotistream/overlay.html
+https://kelvinph.github.io/SpotiStream/overlay.html
 
 ## How to Use
 1. Create a Spotify app at https://developer.spotify.com/dashboard/applications
