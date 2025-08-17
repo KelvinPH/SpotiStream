@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SpotiStream</title>
+  <style>
+    :root {
+      --bg: rgba(0,0,0,0); /* transparent for OBS */
+      --panel: rgba(0, 0, 0, 0.55);
+      --text: #ffffff;
+      --muted: #c7c7c7;
+      --accent: #1db954; /* Spotify green */
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 500 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+
+    .wrap {
+      display: grid; grid-template-columns: 128px 1fr; gap: 16px; align-items: center;
+      width: 100%; height: 100%; padding: 12px 16px; box-sizing: border-box;
+      backdrop-filter: blur(6px) saturate(120%);
+      background: var(--panel); border-radius: 16px; box-shadow: var(--shadow);
+    }
+
+    .art {
+      width: 128px; height: 128px; border-radius: 12px; overflow: hidden;
+      position: relative; box-shadow: var(--shadow);
+    }
+
+    .art img { width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; }
+    .spinning img { animation: spin 9s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+
+    .meta { min-width: 0; display: grid; gap: 10px; }
+    .title { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .artist { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .progress {
+      height: 6px; background: rgba(255,255,255,0.18); border-radius: 999px;
+      position: relative; overflow: hidden;
+    }
+    .bar { position: absolute; inset: 0 100% 0 0; background: linear-gradient(90deg, var(--accent), #3be477);
+      border-radius: 999px; }
+
+    .time { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+    .row { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+    .pill { display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px; }
+    .btn { appearance: none; border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer;
+      background: var(--accent); color: #000; box-shadow: var(--shadow); }
+
+    .setup { display: grid; gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: var(--text); }
+
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <div id="card" class="wrap">
+    <div id="art" class="art"><img id="artImg" alt="Album art" /></div>
+
+    <div class="meta">
+      <div class="row">
+        <div class="pill"><span class="dot"></span> <span id="status">Paused</span></div>
+      </div>
+      <div id="title" class="title">Nothing playing</div>
+      <div id="artist" class="artist">—</div>
+
+      <div class="progress" title="Progress">
+        <div id="bar" class="bar"></div>
+      </div>
+      <div class="time">
+        <div id="elapsed">0:00</div>
+        <div id="duration">0:00</div>
+      </div>
+
+      <div id="setup" class="setup hidden">
+        <div class="field">
+          <label for="clientId">Spotify Client ID</label>
+          <input class="input" id="clientId" placeholder="paste your Client ID" />
+        </div>
+        <button id="save" class="btn">Save Client ID</button>
+        <button id="connect" class="btn">Connect to Spotify</button>
+        <small class="artist">In your Spotify app settings, the Redirect URI must match this page’s full URL (ending with <code>/overlay.html</code>).</small>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Optional URL theming (use ?accent=%231db954&panel=rgba(0,0,0,0.55))
+    (function themeFromURL(){
+      const p = new URLSearchParams(location.search);
+      const set = (k,v)=> v && document.documentElement.style.setProperty(k, v);
+      set('--accent', p.get('accent'));
+      set('--panel', p.get('panel'));
+    })();
+
+    // ---- Spotify OAuth + API config
+    const SCOPES = [
+      'user-read-playback-state',
+      'user-read-currently-playing'
+    ];
+    const TOKEN_URL = 'https://accounts.spotify.com/api/token';
+    const AUTH_URL  = 'https://accounts.spotify.com/authorize';
+
+    // IMPORTANT: auto-match whatever host/path this file is served from (GitHub Pages, Netlify, etc.)
+    const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+    // ---- DOM helpers
+    const el = id => document.getElementById(id);
+    const titleEl   = el('title');
+    const artistEl  = el('artist');
+    const statusEl  = el('status');
+    const barEl     = el('bar');
+    const elapsedEl = el('elapsed');
+    const durationEl= el('duration');
+    const artBox    = el('art');
+    const artImg    = el('artImg');
+    const setup     = el('setup');
+
+    // ---- State
+    let accessToken = null;
+    let refreshToken = null;
+    let expiresAt   = 0; // epoch ms
+    let playing = false;
+    let progressMs = 0;
+    let durationMs = 0;
+
+    // ---- Storage keys
+    const K = {
+      clientId: 'obs_spotify_client_id',
+      verifier: 'obs_spotify_code_verifier',
+      access:   'obs_spotify_access_token',
+      refresh:  'obs_spotify_refresh_token',
+      expires:  'obs_spotify_expires_at'
+    };
+
+    // ---- PKCE helpers
+    async function sha256(str){
+      const buf = new TextEncoder().encode(str);
+      const digest = await crypto.subtle.digest('SHA-256', buf);
+      return new Uint8Array(digest);
+    }
+    function base64url(bytes){
+      return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    }
+    function randString(len=64){
+      const arr = new Uint8Array(len);
+      crypto.getRandomValues(arr);
+      return base64url(arr).slice(0, len);
+    }
+
+    // ---- Utils
+    function msToClock(ms){
+      ms = Math.max(0, Math.floor(ms));
+      const total = Math.floor(ms / 1000);
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `${m}:${s.toString().padStart(2,'0')}`;
+    }
+    function setProgress(p){
+      const clamped = Math.max(0, Math.min(1, p));
+      barEl.style.inset = `0 ${(1 - clamped) * 100}% 0 0`;
+      elapsedEl.textContent = msToClock(progressMs);
+      durationEl.textContent = msToClock(durationMs);
+    }
+    function setStatus(text){ statusEl.textContent = text; }
+    function showSetup(show){ setup.classList.toggle('hidden', !show); }
+
+    function loadStored(){
+      accessToken  = localStorage.getItem(K.access);
+      refreshToken = localStorage.getItem(K.refresh);
+      expiresAt    = parseInt(localStorage.getItem(K.expires) || '0', 10);
+      return !!accessToken;
+    }
+    function saveTokens(a, r, expiresIn){
+      if (a) { accessToken = a; localStorage.setItem(K.access, accessToken); }
+      if (r) { refreshToken = r; localStorage.setItem(K.refresh, refreshToken); }
+      if (expiresIn){
+        expiresAt = Date.now() + (expiresIn * 1000) - 10000; // refresh a bit early
+        localStorage.setItem(K.expires, String(expiresAt));
+      }
+    }
+
+    async function fetchJSON(url, opts={}){
+      const res = await fetch(url, opts);
+      if (res.status === 204) return null;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    async function refresh(){
+      const cid = localStorage.getItem(K.clientId);
+      if (!refreshToken || !cid) return;
+      const body = new URLSearchParams({
+        client_id: cid,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken
+      });
+      try {
+        const tok = await fetchJSON(TOKEN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body
+        });
+        saveTokens(tok.access_token, tok.refresh_token || refreshToken, tok.expires_in);
+      } catch (e){
+        console.error('Refresh failed', e);
+        setStatus('Refresh failed');
+      }
+    }
+
+    async function ensureToken(){
+      const cid = localStorage.getItem(K.clientId);
+      if (!cid){ showSetup(true); setStatus('Setup required'); return false; }
+
+      // If just returned with code
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+      const err  = url.searchParams.get('error');
+      if (err){
+        showSetup(true); setStatus('Auth error'); console.error('Spotify auth error:', err);
+        return false;
+      }
+      if (code){
+        const verifier = localStorage.getItem(K.verifier);
+        try {
+          const body = new URLSearchParams({
+            client_id: cid,
+            grant_type: 'authorization_code',
+            code,
+            redirect_uri: REDIRECT_URI,
+            code_verifier: verifier
+          });
+          const tok = await fetchJSON(TOKEN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body
+          });
+          saveTokens(tok.access_token, tok.refresh_token, tok.expires_in);
+          // Clean URL
+          history.replaceState({}, '', REDIRECT_URI);
+        } catch (e){
+          console.error(e); showSetup(true); setStatus('Token exchange failed'); return false;
+        }
+      }
+
+      loadStored();
+
+      if (!accessToken){
+        if (refreshToken){
+          await refresh();
+        } else {
+          showSetup(true); setStatus('Not connected'); return false;
+        }
+      }
+      if (Date.now() > expiresAt){ await refresh(); }
+      return true;
+    }
+
+    async function getCurrentlyPlaying(){
+      const ok = await ensureToken();
+      if (!ok || !accessToken) return null;
+      try {
+        const data = await fetchJSON('https://api.spotify.com/v1/me/player/currently-playing', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        return data; // can be null (204) if nothing is playing
+      } catch (e){
+        if (String(e).includes('401')) { await refresh(); }
+        return null;
+      }
+    }
+
+    function renderNothing(){
+      playing = false; artBox.classList.remove('spinning');
+      titleEl.textContent = 'Nothing playing';
+      artistEl.textContent = '—';
+      setStatus('Paused');
+      durationMs = progressMs = 0; setProgress(0);
+      artImg.src = '';
+    }
+
+    function renderTrack(payload){
+      const item = payload.item;
+      if (!item){ renderNothing(); return; }
+
+      const isPlaying = !!payload.is_playing;
+      const art = (item.album?.images?.[0]?.url) || '';
+      if (art) artImg.src = art;
+
+      const artists = (item.artists || []).map(a => a.name).join(', ');
+      titleEl.textContent = item.name || 'Untitled';
+      artistEl.textContent = artists || 'Unknown artist';
+
+      playing = isPlaying;
+      setStatus(isPlaying ? 'Playing' : 'Paused');
+      artBox.classList.toggle('spinning', isPlaying);
+
+      durationMs = item.duration_ms || 0;
+      progressMs = payload.progress_ms || 0;
+      setProgress(durationMs ? progressMs / durationMs : 0);
+    }
+
+    // Ticker to advance progress smoothly while playing
+    let tickTimer;
+    function tick(){
+      if (playing && durationMs > 0){
+        progressMs += 250; // ~0.25s
+        if (progressMs > durationMs) progressMs = durationMs;
+        setProgress(progressMs / durationMs);
+      }
+      tickTimer = setTimeout(tick, 250);
+    }
+
+    async function poll(){
+      const data = await getCurrentlyPlaying();
+      if (!data){ renderNothing(); return; }
+      renderTrack(data);
+    }
+
+    // Setup UI actions
+    function initSetup(){
+      const clientIdInput = el('clientId');
+      const saveBtn = el('save');
+      const connectBtn = el('connect');
+
+      clientIdInput.value = localStorage.getItem(K.clientId) || '';
+
+      saveBtn.onclick = () => {
+        const v = clientIdInput.value.trim();
+        if (!v) return alert('Please paste your Spotify Client ID');
+        localStorage.setItem(K.clientId, v);
+        alert('Saved! Now click Connect to Spotify.');
+      };
+
+      connectBtn.onclick = async () => {
+        const cid = localStorage.getItem(K.clientId);
+        if (!cid) return alert('Save your Client ID first.');
+        const verifier = randString(64);
+        const challenge = await sha256(verifier).then(base64url);
+        localStorage.setItem(K.verifier, verifier);
+
+        const authUrl = new URL(AUTH_URL);
+        authUrl.searchParams.set('response_type', 'code');
+        authUrl.searchParams.set('client_id', cid);
+        authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+        authUrl.searchParams.set('scope', SCOPES.join(' '));
+        authUrl.searchParams.set('code_challenge_method', 'S256');
+        authUrl.searchParams.set('code_challenge', challenge);
+        window.location.href = authUrl.toString();
+      };
+    }
+
+    // Boot
+    (async function main(){
+      initSetup();
+      await ensureToken();
+      showSetup(!accessToken);
+      tick();
+      poll();
+      setInterval(poll, 3000);
+    })();
+  </script>
+</body>
+</html>
