@@ -1,224 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SpotiStream – Spotify Now Playing</title>
-  <style>
-    :root{
-      /* base tokens */
-      --bg: rgba(0,0,0,0);
-      --panel: rgba(0,0,0,0.55);
-      --text: #ffffff;
-      --muted:#c7c7c7;
-      --accent:#1db954;
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SpotiStream – Spotify Now Playing</title>
+<style>
+  :root{
+    /* Visual tokens */
+    --bg: rgba(0,0,0,0);                 /* overall background (keep transparent for stream) */
+    --panel: rgba(18,18,18,0.72);        /* panel glass */
+    --text: #eaeaea;
+    --muted:#b6bcc4;
+    --accent:#1db954;
+    --shadow: 0 12px 36px rgba(0,0,0,0.35);
 
-      /* sizing */
-      --radius: 16px;
-      --blur: 6px;
-      --art: 220px;         /* larger by default for the record */
-      --bar-h: 6px;
+    /* Sizing */
+    --radius: 16px;
+    --blur: 8px;
+    --disc: 200px;                       /* default disc/cover size */
+    --bar-h: 6px;
+    --gutter: 16px;
 
-      /* fonts */
-      --font: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-      --title-size: 20px;
-      --artist-size: 14px;
-    }
+    /* Type */
+    --font: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    --title-size: clamp(18px, 2.6vw, 22px);
+    --artist-size: clamp(12px, 1.8vw, 14px);
+  }
 
-    html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font: 500 14px/1.4 var(--font);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      overflow:hidden;
-    }
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font: 500 14px/1.45 var(--font);
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    overflow:hidden;
+  }
 
-    /* ---------- LAYOUTS ---------- */
-    .wrap{
-      width:100%; height:100%;
-      box-sizing:border-box;
-      padding:16px;
-      display:grid;
-      gap:18px;
-      align-items:center;
-      backdrop-filter: blur(var(--blur)) saturate(120%);
-      background: var(--panel);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
+  /* ===== Container (never clips UI; nice shadow; responsive) ===== */
+  .wrap{
+    width:100%; height:100%;
+    box-sizing:border-box;
+    padding: var(--gutter);
+    display:grid; gap: var(--gutter);
+    align-items:center;
+    backdrop-filter: blur(var(--blur)) saturate(120%);
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
 
-    /* RECORD layout (default): disc + tonearm + meta in a column) */
-    .layout-record.wrap{
-      grid-template-columns: auto 1fr;
-      grid-template-areas: "disc meta";
-    }
-    .layout-record .disc { grid-area: disc; }
-    .layout-record .meta { grid-area: meta; align-self:center; }
+  /* ===== Layouts ===== */
+  /* Record: disc left, meta right (default) */
+  .layout-record.wrap{
+    grid-template-columns: var(--disc) 1fr;
+    grid-template-areas: "disc meta";
+  }
 
-    /* CARD layout (classic rectangle album art + text) */
-    .layout-card.wrap{
-      grid-template-columns: var(--art) 1fr;
-      grid-template-areas: "art meta";
-    }
-    .layout-card .artbox{ grid-area: art; border-radius: 12px; overflow:hidden; }
-    .layout-card .label-img{ width:100%; height:100%; border-radius:0; }
-    .layout-card .disc, .layout-card .tonearm{ display:none; }
-    .layout-card .progress{ margin-top:6px; }
+  /* Card: rectangular art + meta */
+  .layout-card.wrap{
+    grid-template-columns: var(--disc) 1fr;
+    grid-template-areas: "art meta";
+  }
 
-    /* BAR layout (minimal left-to-right strip, no disc) */
-    .layout-bar.wrap{
-      grid-template-columns: 1fr;
-      grid-template-areas: "meta";
-      padding:10px 14px;
-    }
-    .layout-bar .disc, .layout-bar .artbox, .layout-bar .tonearm { display:none; }
-    .layout-bar .title{ font-size:18px }
-    .layout-bar .progress{ height:4px }
-    .layout-bar .pill{ display:none }
+  /* Bar: text-only strip */
+  .layout-bar.wrap{
+    grid-template-columns: 1fr;
+    grid-template-areas: "meta";
+    padding: 12px 16px;
+  }
+  .layout-bar .pill, .layout-bar .disc, .layout-bar .artbox { display:none }
 
-    /* STACKED layout (disc on top, text below) */
-    .layout-stacked.wrap{
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "disc"
-        "meta";
-      justify-items:center;
-      text-align:center;
-      padding:16px;
-      row-gap:14px;
-    }
-    .layout-stacked .meta{ width: min(560px, 100%); }
-    .layout-stacked .time{ justify-content: center; gap:16px; }
+  /* Stacked: disc top, meta below */
+  .layout-stacked.wrap{
+    grid-template-columns: 1fr;
+    grid-template-areas: "disc" "meta";
+    justify-items:center;
+    text-align:center;
+  }
+  .layout-stacked .meta{ width:min(560px, 100%) }
+  .layout-stacked .time{ justify-content:center; gap:16px }
 
-    /* ---------- DISC (vinyl) ---------- */
-    .disc{
-      position:relative;
-      width: var(--art);
-      height: var(--art);
-      border-radius: 50%;
-      /* Grooves: layered radial gradients */
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06) 0 6%, rgba(0,0,0,0) 6%),
-        repeating-radial-gradient(circle at 50% 50%,
-          rgba(255,255,255,0.08) 0 1px,
-          rgba(0,0,0,0) 2px 6px),
-        #111;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.6), var(--shadow);
-      display:grid; place-items:center;
-      overflow:hidden;
-    }
-    .disc.spin img,
-    .disc.spin::before{ animation: spin 9s linear infinite; }
+  /* ===== Disc (vinyl) ===== */
+  .disc{ grid-area:disc; position:relative; width:var(--disc); height:var(--disc); border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.07) 0 6%, transparent 6%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0 1px, transparent 2px 6px),
+      #0f0f0f;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 12px 30px rgba(0,0,0,0.4);
+    display:grid; place-items:center; overflow:hidden;
+  }
+  /* rotating highlights */
+  .disc::before{ content:""; position:absolute; inset:-18%;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.08), transparent 50%),
+      radial-gradient(circle at 80% 78%, rgba(255,255,255,0.06), transparent 50%);
+    border-radius:50%; z-index:1;
+    animation: sheen 9s linear infinite;
+  }
+  @keyframes sheen{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-    /* Center label (uses album art), circular */
-    .label-img{
-      width: 62%;
-      height: 62%;
-      border-radius: 50%;
-      object-fit: cover;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-      position: relative;
-      z-index: 2;
-    }
-    /* Center hole on disc */
-    .disc::after{
-      content:"";
-      position:absolute;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #000;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
-      z-index: 3;
-    }
-    /* Subtle rotating highlight for vinyl sheen */
-    .disc::before{
-      content:"";
-      position:absolute; inset:-20%;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.06), transparent 50%);
-      border-radius:50%;
-      z-index:1;
-    }
+  /* Center label uses CSS background to avoid alt-text leaks */
+  .label-img{ width:62%; height:62%; border-radius:50%; background:#222 center/cover no-repeat;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35); position:relative; z-index:2;
+  }
+  /* Center hole */
+  .disc::after{ content:""; position:absolute; width:8px; height:8px; border-radius:50%;
+    background:#000; box-shadow: 0 0 0 1px rgba(255,255,255,0.28); z-index:3;
+  }
+  /* Spin only when allowed */
+  .spin .label-img, .spin::before{ animation: spin 9s linear infinite }
+  @keyframes spin{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-    /* TONEARM (decor only) */
-    .tonearm{
-      position:absolute;
-      right: -28px;
-      top: 14px;
-      width: 140px; height: 26px;
-      transform: rotate(22deg);
-      transform-origin: left center;
-      pointer-events:none;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
-    }
-    .tonearm .arm{
-      position:absolute; left:0; top:10px;
-      width: 120px; height: 6px;
-      background: linear-gradient(#bbb, #888);
-      border-radius: 4px;
-    }
-    .tonearm .head{
-      position:absolute; right:0; top:5px;
-      width: 22px; height: 14px;
-      background: linear-gradient(#666,#333);
-      border-radius: 3px;
-    }
-    .tonearm .joint{
-      position:absolute; left:-8px; top:6px;
-      width: 14px; height: 14px;
-      border-radius:50%;
-      background: #999;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
-    }
+  /* Decorative tonearm (hidden on small or non-record layouts) */
+  .tonearm{ position:absolute; right:-26px; top:14px; width:136px; height:26px;
+    transform:rotate(21deg); transform-origin:left center; pointer-events:none;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  }
+  .tonearm .arm{ position:absolute; left:0; top:10px; width:116px; height:6px; background:linear-gradient(#cfcfcf,#969696); border-radius:4px }
+  .tonearm .head{ position:absolute; right:0; top:6px; width:22px; height:14px; background:linear-gradient(#666,#333); border-radius:3px }
+  .tonearm .joint{ position:absolute; left:-8px; top:6px; width:14px; height:14px; border-radius:50%; background:#a7a7a7; box-shadow: inset 0 1px 2px rgba(0,0,0,0.45) }
 
-    /* ---------- META ---------- */
-    .meta{min-width:0; display:grid; gap:10px;}
-    .title{font-size:var(--title-size); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .artist{font-size:var(--artist-size); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  /* Rectangular art for card layout */
+  .artbox{ grid-area:art; width:var(--disc); height:var(--disc); border-radius:12px; overflow:hidden;
+    background:#222 center/cover no-repeat; box-shadow: 0 10px 30px rgba(0,0,0,0.38);
+  }
 
-    .progress{ height: var(--bar-h); background: rgba(255,255,255,0.18); border-radius: 999px; position:relative; overflow:hidden; }
-    .bar{ position:absolute; inset:0 100% 0 0; background: linear-gradient(90deg, var(--accent), #3be477); border-radius: 999px; }
+  /* ===== Meta / text / progress ===== */
+  .meta{ grid-area:meta; min-width:0; display:grid; gap:10px; align-content:center }
+  .title{
+    font-size:var(--title-size); font-weight:800; letter-spacing:0.2px;
+    white-space:nowrap; overflow:hidden;
+    -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent 100%);
+            mask-image: linear-gradient(90deg, #000 90%, transparent 100%);
+  }
+  .artist{
+    font-size:var(--artist-size); color:var(--muted);
+    white-space:nowrap; overflow:hidden;
+    -webkit-mask-image: linear-gradient(90deg, #000 92%, transparent 100%);
+            mask-image: linear-gradient(90deg, #000 92%, transparent 100%);
+  }
+  .row{ display:flex; align-items:center; gap:8px }
+  .pill{ display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px }
+  .dot{ width:6px; height:6px; border-radius:999px; background:var(--accent); box-shadow:0 0 8px var(--accent) }
 
-    .time{ display:flex; justify-content:space-between; font-variant-numeric: tabular-nums; color:var(--muted); }
-    .row{ display:flex; align-items:center; gap:8px; }
-    .dot{ width:6px; height:6px; border-radius:999px; background: var(--accent); box-shadow:0 0 8px var(--accent); }
-    .pill{ display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px; }
+  .progress{ height:var(--bar-h); border-radius:999px; position:relative; overflow:hidden; background: rgba(255,255,255,0.18) }
+  .bar{ position:absolute; inset:0 100% 0 0; background: var(--accent); border-radius:999px }
+  .time{ display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted) }
 
-    .btn{ appearance:none; border:0; border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer; background: var(--accent); color:#000; box-shadow: var(--shadow); }
-    .setup{ display:grid; gap:14px; }
-    .field{ display:grid; gap:6px; }
-    .input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: var(--text); }
-    .hidden{display:none !important;}
+  .btn{ appearance:none; border:0; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer; background:var(--accent); color:#000; box-shadow: var(--shadow) }
+  .setup{ display:grid; gap:12px }
+  .field{ display:grid; gap:6px }
+  .input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color:var(--text) }
+  .hidden{ display:none !important }
 
-    /* compact mode tweaks (any layout) */
-    .compact .title{ font-size: 16px; }
-    .compact .artist{ font-size: 12px; }
-    .compact.wrap{ gap: 12px; padding: 10px 12px; }
+  /* Compact spacing (any layout) */
+  .compact.wrap{ padding:10px 12px; gap:12px }
+  .compact .title{ --title-size: clamp(16px,2.1vw,20px) }
+  .compact .artist{ --artist-size: clamp(11px,1.6vw,13px) }
 
-    @keyframes spin{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-  </style>
+  /* Small widths: prevent crowding automatically */
+  @media (max-width: 540px){
+    :root{ --disc: 150px }
+    .tonearm{ display:none }
+  }
+</style>
 </head>
 <body>
   <div id="root" class="layout-record">
     <div id="card" class="wrap">
-      <!-- DISC (default) -->
-      <div class="disc spin" id="disc">
-        <img id="artImg" class="label-img" alt="Album art label" />
-        <div class="tonearm" id="tonearm">
-          <div class="arm"></div><div class="head"></div><div class="joint"></div>
-        </div>
+      <!-- Disc (default) -->
+      <div id="disc" class="disc spin">
+        <div id="labelImg" class="label-img"></div>
+        <div id="tonearm" class="tonearm"><div class="arm"></div><div class="head"></div><div class="joint"></div></div>
       </div>
 
-      <!-- Fallback album-art box used by CARD layout -->
-      <div class="artbox hidden" id="artbox">
-        <img class="label-img" alt="Album art" />
-      </div>
+      <!-- Card layout art -->
+      <div id="artbox" class="artbox hidden"></div>
 
-      <!-- META -->
+      <!-- Meta -->
       <div class="meta">
-        <div class="row"><div class="pill"><span class="dot"></span> <span id="status">Paused</span></div></div>
+        <div class="row"><div class="pill"><span class="dot"></span><span id="status">Paused</span></div></div>
         <div id="title" class="title">Nothing playing</div>
         <div id="artist" class="artist">—</div>
 
@@ -226,271 +186,254 @@
         <div class="time"><div id="elapsed">0:00</div><div id="duration">0:00</div></div>
 
         <div id="setup" class="setup hidden">
-          <div class="field"><label for="clientId">Spotify Client ID</label>
-            <input class="input" id="clientId" placeholder="paste your Client ID" /></div>
+          <div class="field"><label for="clientId">Spotify Client ID</label><input id="clientId" class="input" placeholder="paste your Client ID"/></div>
           <button id="save" class="btn">Save Client ID</button>
           <button id="connect" class="btn">Connect to Spotify</button>
-          <small class="artist">Redirect URI must equal this page URL (ends with <code>/overlay.html</code>).</small>
+          <small class="artist">In your Spotify app, the Redirect URI must exactly match this page URL (ending with <code>/overlay.html</code>).</small>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    /* ==========================
-       THEMES (distinct)
-       ========================== */
-    const THEMES = {
-      spotify:   { panel:'rgba(18,18,18,0.72)', text:'#e5e5e5', muted:'#b3b3b3', accent:'#1db954', radius:16, blur:6 },
-      obsdark:   { panel:'rgba(24,24,27,0.72)', text:'#e5e7eb', muted:'#9ca3af', accent:'#22d3ee', radius:12, blur:4 },
-      minimal:   { panel:'rgba(0,0,0,0.35)',    text:'#ffffff', muted:'#cfcfcf', accent:'#ffffff', radius:12, blur:2, bar:4, shadow:0 },
-      neon:      { panel:'rgba(8,10,22,0.62)',  text:'#e9f0ff', muted:'#9ab0ff', accent:'#7cf4ff', radius:14, blur:8 },
-      oldradio:  { panel:'rgba(54,40,24,0.55)', text:'#fff7e6', muted:'#eed9b7', accent:'#ffb84d', radius:10, blur:2, bar:4 },
-      blue:      { panel:'rgba(10,24,48,0.55)', text:'#e6f0ff', muted:'#a9c1ff', accent:'#4da3ff', radius:16, blur:8 },
-      red:       { panel:'rgba(48,12,18,0.52)', text:'#ffeaea', muted:'#ffb3b3', accent:'#ff4d4d', radius:16, blur:8 },
-      yellow:    { panel:'rgba(48,40,12,0.52)', text:'#fff9db', muted:'#ffe7a3', accent:'#ffd43b', radius:16, blur:8 },
-      slate:     { panel:'rgba(0,0,0,0.55)',    text:'#ffffff', muted:'#c7c7c7', accent:'#1db954', radius:16, blur:6, art:220, bar:6 }
-    };
+<script>
+  /* ==========================
+     Distinct Themes
+     ========================== */
+  const THEMES = {
+    spotify:  { panel:'rgba(18,18,18,0.72)', text:'#eaeaea', muted:'#b6bcc4', accent:'#1db954', radius:16, blur:8 },
+    obsdark:  { panel:'rgba(24,24,27,0.72)', text:'#e6e7ea', muted:'#9da3ad', accent:'#22d3ee', radius:14, blur:6 },
+    minimal:  { panel:'rgba(0,0,0,0.34)',   text:'#ffffff', muted:'#cfcfcf', accent:'#ffffff', radius:12, blur:2, bar:4, shadow:0 },
+    neon:     { panel:'rgba(8,10,22,0.62)', text:'#e9f0ff', muted:'#9ab0ff', accent:'#7cf4ff', radius:14, blur:10 },
+    oldradio: { panel:'rgba(64,50,34,0.62)',text:'#fff7e6', muted:'#eed9b7', accent:'#ffb84d', radius:12, blur:3, bar:4 },
+    blue:     { panel:'rgba(10,24,48,0.55)',text:'#e6f0ff', muted:'#a9c1ff', accent:'#4da3ff', radius:16, blur:8 },
+    red:      { panel:'rgba(48,12,18,0.52)',text:'#ffeaea', muted:'#ffb3b3', accent:'#ff4d4d', radius:16, blur:8 },
+    yellow:   { panel:'rgba(48,40,12,0.52)',text:'#fff9db', muted:'#ffe7a3', accent:'#ffd43b', radius:16, blur:8 },
+    slate:    { panel:'rgba(0,0,0,0.55)',   text:'#ffffff', muted:'#c7c7c7', accent:'#1db954', radius:16, blur:6 }
+  };
 
-    const FONT_URLS = {
-      inter:'https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap',
-      rubik:'https://fonts.googleapis.com/css2?family=Rubik:wght@500;700&display=swap',
-      montserrat:'https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap',
-      poppins:'https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap',
-      firasans:'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;700&display=swap'
-    };
+  const FONT_URLS = {
+    inter: 'https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap',
+    rubik: 'https://fonts.googleapis.com/css2?family=Rubik:wght@600;800&display=swap',
+    montserrat: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap',
+    poppins: 'https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap',
+    firasans: 'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600;800&display=swap'
+  };
 
-    function applyVars(obj){
-      const r = document.documentElement.style;
-      if (obj.panel) r.setProperty('--panel', obj.panel);
-      if (obj.text)  r.setProperty('--text', obj.text);
-      if (obj.muted) r.setProperty('--muted', obj.muted);
-      if (obj.accent)r.setProperty('--accent', obj.accent);
-      if (obj.radius!=null) r.setProperty('--radius', obj.radius+'px');
-      if (obj.blur!=null)   r.setProperty('--blur',   obj.blur+'px');
-      if (obj.art!=null)    r.setProperty('--art',    obj.art+'px');
-      if (obj.bar!=null)    r.setProperty('--bar-h',  obj.bar+'px');
-      if (obj.shadow===0)   r.setProperty('--shadow','none');
+  function applyVars(obj){
+    const r = document.documentElement.style;
+    if (obj.panel) r.setProperty('--panel', obj.panel);
+    if (obj.text)  r.setProperty('--text', obj.text);
+    if (obj.muted) r.setProperty('--muted', obj.muted);
+    if (obj.accent)r.setProperty('--accent', obj.accent);
+    if (obj.radius!=null) r.setProperty('--radius', obj.radius+'px');
+    if (obj.blur!=null)   r.setProperty('--blur',   obj.blur+'px');
+    if (obj.bar!=null)    r.setProperty('--bar-h',  obj.bar+'px');
+    if (obj.shadow===0)   r.setProperty('--shadow','none');
+  }
+
+  function applyFont(name){
+    if (!name) return;
+    const key = name.toLowerCase();
+    const href = FONT_URLS[key];
+    if (href){
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+      const fam = {inter:'"Inter"', rubik:'"Rubik"', montserrat:'"Montserrat"', poppins:'"Poppins"', firasans:'"Fira Sans"'}[key];
+      if (fam) document.documentElement.style.setProperty('--font', `${fam}, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`);
     }
+  }
 
-    function applyFont(name){
-      if (!name) return;
-      const key = name.toLowerCase();
-      const href = FONT_URLS[key];
-      if (href){
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
-        const famMap = {inter:'"Inter"', rubik:'"Rubik"', montserrat:'"Montserrat"', poppins:'"Poppins"', firasans:'"Fira Sans"'};
-        const fam = famMap[key];
-        if (fam) document.documentElement.style.setProperty('--font', `${fam}, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`);
-      }
-    }
+  /* ==========================
+     URL Controls (layout/theme/knobs)
+     ========================== */
+  const p = new URLSearchParams(location.search);
+  const layout = (p.get('layout') || 'record').toLowerCase();
+  const root = document.getElementById('root');
+  root.className = `layout-${layout}`;
 
-    /* ==========================
-       URL Controls
-       ========================== */
-    const p = new URLSearchParams(location.search);
+  // For non-record layouts, hide tonearm + disc or art appropriately
+  const discEl = document.getElementById('disc');
+  const artbox = document.getElementById('artbox');
+  const tonearm = document.getElementById('tonearm');
+  if (layout === 'card'){ discEl.style.display='none'; artbox.classList.remove('hidden'); }
+  if (layout !== 'record'){ tonearm.style.display='none'; }
 
-    // Layout (default: record)
-    const layout = (p.get('layout') || 'record').toLowerCase();
-    const root = document.getElementById('root');
-    root.className = `layout-${layout}`;
+  const themeKey = (p.get('theme') || 'spotify').toLowerCase();
+  if (THEMES[themeKey]) applyVars(THEMES[themeKey]);
 
-    // If card layout: show artbox instead of disc
-    const discEl = document.getElementById('disc');
-    const artbox = document.getElementById('artbox');
-    if (layout === 'card'){
-      discEl.style.display = 'none';
-      artbox.classList.remove('hidden');
-    }
+  // Fine-grained overrides
+  const map = { accent:'--accent', panel:'--panel', text:'--text', muted:'--muted' };
+  for (const [k,css] of Object.entries(map)){ const v=p.get(k); if (v) document.documentElement.style.setProperty(css, v); }
+  if (p.get('radius')) document.documentElement.style.setProperty('--radius', p.get('radius')+'px');
+  if (p.get('blur'))   document.documentElement.style.setProperty('--blur',   p.get('blur')+'px');
+  if (p.get('bar'))    document.documentElement.style.setProperty('--bar-h',  p.get('bar')+'px');
+  if (p.get('shadow')==='0') document.documentElement.style.setProperty('--shadow','none');
 
-    // Theme
-    const themeKey = (p.get('theme') || 'spotify').toLowerCase();
-    if (THEMES[themeKey]) applyVars(THEMES[themeKey]);
+  if (p.get('compact')==='1') document.getElementById('card').classList.add('compact');
+  window.__forceSpin = p.get('spin'); // '0' to stop spinning
+  applyFont(p.get('font'));
 
-    // Fine-grained overrides
-    const kv = { accent:'--accent', panel:'--panel', text:'--text', muted:'--muted' };
-    for (const [k,css] of Object.entries(kv)){ const v = p.get(k); if (v) document.documentElement.style.setProperty(css, v); }
-    if (p.get('radius')) document.documentElement.style.setProperty('--radius', p.get('radius')+'px');
-    if (p.get('blur'))   document.documentElement.style.setProperty('--blur',   p.get('blur')+'px');
-    if (p.get('art'))    document.documentElement.style.setProperty('--art',    p.get('art')+'px');
-    if (p.get('bar'))    document.documentElement.style.setProperty('--bar-h',  p.get('bar')+'px');
-    if (p.get('shadow')==='0') document.documentElement.style.setProperty('--shadow','none');
+  /* ==========================
+     Spotify Logic
+     ========================== */
+  const SCOPES = ['user-read-playback-state','user-read-currently-playing'];
+  const TOKEN_URL = 'https://accounts.spotify.com/api/token';
+  const AUTH_URL  = 'https://accounts.spotify.com/authorize';
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-    // Toggles
-    if (p.get('compact')==='1') document.getElementById('card').classList.add('compact');
-    // force spin on/off (default on)
-    window.__forceSpin = p.get('spin'); // '0' to disable
+  const el = id=>document.getElementById(id);
+  const titleEl=el('title'), artistEl=el('artist'), statusEl=el('status'),
+        barEl=el('bar'), elapsedEl=el('elapsed'), durationEl=el('duration'),
+        labelDiv = el('labelImg');
 
-    // Fonts
-    applyFont(p.get('font'));
+  let accessToken=null, refreshToken=null, expiresAt=0;
+  let playing=false, progressMs=0, durationMs=0;
 
-    /* ==========================
-       Spotify + Overlay Logic
-       ========================== */
-    const SCOPES = ['user-read-playback-state','user-read-currently-playing'];
-    const TOKEN_URL = 'https://accounts.spotify.com/api/token';
-    const AUTH_URL  = 'https://accounts.spotify.com/authorize';
-    const REDIRECT_URI = window.location.origin + window.location.pathname;
+  const K = { clientId:'obs_spotify_client_id', verifier:'obs_spotify_code_verifier', access:'obs_spotify_access_token', refresh:'obs_spotify_refresh_token', expires:'obs_spotify_expires_at' };
 
-    const el = id=>document.getElementById(id);
-    const titleEl   = el('title');
-    const artistEl  = el('artist');
-    const statusEl  = el('status');
-    const barEl     = el('bar');
-    const elapsedEl = el('elapsed');
-    const durationEl= el('duration');
+  async function sha256(str){ const buf=new TextEncoder().encode(str); const d=await crypto.subtle.digest('SHA-256', buf); return new Uint8Array(d); }
+  function base64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function randString(len=64){ const a=new Uint8Array(len); crypto.getRandomValues(a); return base64url(a).slice(0,len); }
 
-    let accessToken=null, refreshToken=null, expiresAt=0;
-    let playing=false, progressMs=0, durationMs=0;
+  function msToClock(ms){ ms=Math.max(0,Math.floor(ms)); const t=Math.floor(ms/1000); const m=Math.floor(t/60); const s=t%60; return `${m}:${s.toString().padStart(2,'0')}`; }
+  function setProgress(p){ const c=Math.max(0,Math.min(1,p)); barEl.style.inset = `0 ${(1-c)*100}% 0 0`; elapsedEl.textContent=msToClock(progressMs); durationEl.textContent=msToClock(durationMs); }
+  function setStatus(t){ statusEl.textContent=t; }
+  function showSetup(b){ document.getElementById('setup').classList.toggle('hidden', !b); }
 
-    const K = { clientId:'obs_spotify_client_id', verifier:'obs_spotify_code_verifier', access:'obs_spotify_access_token', refresh:'obs_spotify_refresh_token', expires:'obs_spotify_expires_at' };
+  function loadStored(){ accessToken=localStorage.getItem(K.access); refreshToken=localStorage.getItem(K.refresh); expiresAt=parseInt(localStorage.getItem(K.expires)||'0',10); return !!accessToken; }
+  function saveTokens(a,r,e){ if(a){accessToken=a;localStorage.setItem(K.access,a);} if(r){refreshToken=r;localStorage.setItem(K.refresh,r);} if(e){expiresAt=Date.now()+e*1000-10000; localStorage.setItem(K.expires,String(expiresAt));} }
 
-    async function sha256(str){ const buf=new TextEncoder().encode(str); const d=await crypto.subtle.digest('SHA-256', buf); return new Uint8Array(d); }
-    function base64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-    function randString(len=64){ const arr=new Uint8Array(len); crypto.getRandomValues(arr); return base64url(arr).slice(0,len); }
+  async function fetchJSON(url,opts={}){ const res=await fetch(url,opts); if(res.status===204) return null; if(!res.ok) throw new Error(`HTTP ${res.status}`); return await res.json(); }
 
-    function msToClock(ms){ ms=Math.max(0,Math.floor(ms)); const t=Math.floor(ms/1000); const m=Math.floor(t/60); const s=t%60; return `${m}:${s.toString().padStart(2,'0')}`; }
-    function setProgress(p){ const c=Math.max(0,Math.min(1,p)); barEl.style.inset=`0 ${(1-c)*100}% 0 0`; elapsedEl.textContent=msToClock(progressMs); durationEl.textContent=msToClock(durationMs); }
-    function setStatus(t){ statusEl.textContent=t; }
+  async function refresh(){
+    const cid=localStorage.getItem(K.clientId); if(!refreshToken||!cid) return;
+    const body=new URLSearchParams({client_id:cid,grant_type:'refresh_token',refresh_token:refreshToken});
+    try{ const tok=await fetchJSON(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+         saveTokens(tok.access_token, tok.refresh_token||refreshToken, tok.expires_in);
+    }catch(e){ console.error('Refresh failed', e); setStatus('Refresh failed'); }
+  }
 
-    function loadStored(){ accessToken=localStorage.getItem(K.access); refreshToken=localStorage.getItem(K.refresh); expiresAt=parseInt(localStorage.getItem(K.expires)||'0',10); return !!accessToken; }
-    function saveTokens(a,r,e){ if(a){accessToken=a;localStorage.setItem(K.access,a);} if(r){refreshToken=r;localStorage.setItem(K.refresh,r);} if(e){expiresAt=Date.now()+e*1000-10000; localStorage.setItem(K.expires,String(expiresAt));} }
-
-    async function fetchJSON(url,opts={}){ const res=await fetch(url,opts); if(res.status===204) return null; if(!res.ok) throw new Error(`HTTP ${res.status}`); return await res.json(); }
-
-    async function refresh(){
-      const cid=localStorage.getItem(K.clientId); if(!refreshToken||!cid) return;
-      const body=new URLSearchParams({client_id:cid,grant_type:'refresh_token',refresh_token:refreshToken});
+  async function ensureToken(){
+    const cid=localStorage.getItem(K.clientId);
+    if(!cid){ showSetup(true); setStatus('Setup required'); return false; }
+    const url=new URL(window.location.href);
+    const code=url.searchParams.get('code'); const err=url.searchParams.get('error');
+    if(err){ showSetup(true); setStatus('Auth error'); console.error('Spotify auth error:',err); return false; }
+    if(code){
+      const verifier=localStorage.getItem(K.verifier);
       try{
+        const body=new URLSearchParams({client_id:cid,grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,code_verifier:verifier});
         const tok=await fetchJSON(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-        saveTokens(tok.access_token, tok.refresh_token||refreshToken, tok.expires_in);
-      }catch(e){ console.error('Refresh failed', e); setStatus('Refresh failed'); }
+        saveTokens(tok.access_token, tok.refresh_token, tok.expires_in);
+        history.replaceState({},'',REDIRECT_URI);
+      }catch(e){ console.error(e); showSetup(true); setStatus('Token exchange failed'); return false; }
+    }
+    loadStored();
+    if(!accessToken){ if(refreshToken){ await refresh(); } else { showSetup(true); setStatus('Not connected'); return false; } }
+    if(Date.now()>expiresAt) await refresh();
+    return true;
+  }
+
+  async function getCurrentlyPlaying(){
+    const ok=await ensureToken(); if(!ok||!accessToken) return null;
+    try{ return await fetchJSON('https://api.spotify.com/v1/me/player/currently-playing',{ headers:{ Authorization:`Bearer ${accessToken}` } }); }
+    catch(e){ if(String(e).includes('401')) await refresh(); return null; }
+  }
+
+  function renderNothing(){
+    playing=false;
+    titleEl.textContent='Nothing playing';
+    artistEl.textContent='—';
+    setStatus('Paused');
+    durationMs=progressMs=0; setProgress(0);
+    document.getElementById('disc').classList.remove('spin');
+    labelDiv.style.backgroundImage = '';
+    artbox.style.backgroundImage = '';
+  }
+
+  function renderTrack(payload){
+    const item=payload?.item;
+    if(!item){ renderNothing(); return; }
+
+    const img = (item.album?.images?.[0]?.url)||'';
+    if (img){
+      labelDiv.style.backgroundImage = `url('${img}')`;
+      artbox.style.backgroundImage   = `url('${img}')`;
     }
 
-    async function ensureToken(){
-      const cid=localStorage.getItem(K.clientId);
-      if(!cid){ showSetup(true); setStatus('Setup required'); return false; }
-      const url=new URL(window.location.href);
-      const code=url.searchParams.get('code'); const err=url.searchParams.get('error');
-      if(err){ showSetup(true); setStatus('Auth error'); console.error('Spotify auth error:',err); return false; }
-      if(code){
-        const verifier=localStorage.getItem(K.verifier);
-        try{
-          const body=new URLSearchParams({client_id:cid,grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,code_verifier:verifier});
-          const tok=await fetchJSON(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-          saveTokens(tok.access_token, tok.refresh_token, tok.expires_in);
-          history.replaceState({},'',REDIRECT_URI);
-        }catch(e){ console.error(e); showSetup(true); setStatus('Token exchange failed'); return false; }
-      }
-      loadStored();
-      if(!accessToken){ if(refreshToken){ await refresh(); } else { showSetup(true); setStatus('Not connected'); return false; } }
-      if(Date.now()>expiresAt) await refresh();
-      return true;
-    }
+    const artists=(item.artists||[]).map(a=>a.name).join(', ');
+    titleEl.textContent = item.name || 'Untitled';
+    artistEl.textContent = artists || 'Unknown artist';
 
-    async function getCurrentlyPlaying(){
-      const ok=await ensureToken(); if(!ok||!accessToken) return null;
-      try{
-        const data=await fetchJSON('https://api.spotify.com/v1/me/player/currently-playing',{ headers:{ Authorization:`Bearer ${accessToken}` } });
-        return data;
-      }catch(e){ if(String(e).includes('401')) await refresh(); return null; }
-    }
+    playing = !!payload.is_playing;
+    setStatus(playing?'Playing':'Paused');
 
-    function showSetup(show){ document.getElementById('setup').classList.toggle('hidden', !show); }
+    const spinFlag = window.__forceSpin;
+    const allowSpin = !(spinFlag==='0');
+    document.getElementById('disc').classList.toggle('spin', playing && allowSpin);
 
-    function renderNothing(){
-      playing=false;
-      titleEl.textContent='Nothing playing';
-      artistEl.textContent='—';
-      setStatus('Paused');
-      durationMs=progressMs=0; setProgress(0);
-      // stop vinyl spin
-      discEl.classList.remove('spin');
-    }
+    durationMs=item.duration_ms||0;
+    progressMs=payload.progress_ms||0;
+    setProgress(durationMs?progressMs/durationMs:0);
+  }
 
-    function renderTrack(payload){
-      const item = payload?.item;
-      if(!item){ renderNothing(); return; }
+  function initSetup(){
+    const clientIdInput = document.getElementById('clientId');
+    const saveBtn = document.getElementById('save');
+    const connectBtn = document.getElementById('connect');
 
-      // image to center label (or artbox for card layout)
-      const url = (item.album?.images?.[0]?.url)||'';
-      const labelImg = document.getElementById('artImg');
-      if (url) labelImg.src = url;
+    clientIdInput.value = localStorage.getItem(K.clientId)||'';
+    saveBtn.onclick = () => {
+      const v = clientIdInput.value.trim();
+      if(!v) return alert('Please paste your Spotify Client ID');
+      localStorage.setItem(K.clientId, v);
+      alert('Saved! Now click Connect to Spotify.');
+    };
+    connectBtn.onclick = async () => {
+      const cid = localStorage.getItem(K.clientId);
+      if(!cid) return alert('Save your Client ID first.');
+      const verifier = (() => {
+        const arr = new Uint8Array(64); crypto.getRandomValues(arr);
+        return btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'').slice(0,64);
+      })();
+      const challenge = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
+        .then(buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''));
+      localStorage.setItem(K.verifier, verifier);
 
-      const artists = (item.artists||[]).map(a=>a.name).join(', ');
-      titleEl.textContent = item.name || 'Untitled';
-      artistEl.textContent = artists || 'Unknown artist';
+      const a = new URL(AUTH_URL);
+      a.searchParams.set('response_type','code');
+      a.searchParams.set('client_id', cid);
+      a.searchParams.set('redirect_uri', REDIRECT_URI);
+      a.searchParams.set('scope', SCOPES.join(' '));
+      a.searchParams.set('code_challenge_method','S256');
+      a.searchParams.set('code_challenge', challenge);
+      window.location.href = a.toString();
+    };
+  }
 
-      const isPlaying = !!payload.is_playing;
-      playing = isPlaying;
-      setStatus(isPlaying ? 'Playing' : 'Paused');
+  (async function main(){
+    initSetup();
+    await ensureToken();
+    showSetup(!accessToken);
 
-      // control spin
-      const forceSpin = window.__forceSpin; // '0' disables
-      const allowSpin = !(forceSpin==='0');
-      discEl.classList.toggle('spin', isPlaying && allowSpin);
+    // Poll + tick
+    setInterval(async ()=>{
+      const data = await getCurrentlyPlaying();
+      if(!data){ renderNothing(); return; }
+      renderTrack(data);
+    }, 3000);
 
-      durationMs = item.duration_ms||0;
-      progressMs = payload.progress_ms||0;
-      setProgress(durationMs ? progressMs/durationMs : 0);
-    }
-
-    let tickTimer;
-    function tick(){
+    // Smooth progress
+    setInterval(()=>{
       if(playing && durationMs>0){
         progressMs += 250;
         if(progressMs>durationMs) progressMs=durationMs;
         setProgress(progressMs/durationMs);
       }
-      tickTimer = setTimeout(tick, 250);
-    }
-
-    function initSetup(){
-      const clientIdInput = document.getElementById('clientId');
-      const saveBtn = document.getElementById('save');
-      const connectBtn = document.getElementById('connect');
-
-      clientIdInput.value = localStorage.getItem(K.clientId)||'';
-      saveBtn.onclick = () => {
-        const v = clientIdInput.value.trim();
-        if(!v) return alert('Please paste your Spotify Client ID');
-        localStorage.setItem(K.clientId, v);
-        alert('Saved! Now click Connect to Spotify.');
-      };
-      connectBtn.onclick = async () => {
-        const cid = localStorage.getItem(K.clientId);
-        if(!cid) return alert('Save your Client ID first.');
-        const verifier = randString(64);
-        const challenge = await sha256(verifier).then(bytes => base64url(bytes));
-        localStorage.setItem(K.verifier, verifier);
-
-        const authUrl = new URL(AUTH_URL);
-        authUrl.searchParams.set('response_type','code');
-        authUrl.searchParams.set('client_id', cid);
-        authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
-        authUrl.searchParams.set('scope', SCOPES.join(' '));
-        authUrl.searchParams.set('code_challenge_method','S256');
-        authUrl.searchParams.set('code_challenge', challenge);
-        window.location.href = authUrl.toString();
-      };
-    }
-
-    (async function main(){
-      initSetup();
-      await ensureToken();
-      showSetup(!accessToken);
-      tick();
-      // initial layout polish: hide tonearm for non-record layouts
-      if (layout !== 'record'){ document.getElementById('tonearm').style.display='none'; }
-      setInterval(async () => {
-        const data = await getCurrentlyPlaying();
-        if(!data) { renderNothing(); return; }
-        renderTrack(data);
-      }, 3000);
-    })();
-  </script>
+    }, 250);
+  })();
+</script>
 </body>
 </html>
