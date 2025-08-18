@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SpotiStream Configurator</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#151822; --muted:#9aa4b2; --text:#e8ecf3; --accent:#6ee7b7;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:linear-gradient(180deg,#0f1115,#0b0d12);
+    color:var(--text); font:500 14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  }
+  .app{display:grid; grid-template-columns: 420px 1fr; gap:18px; height:100%; padding:18px}
+  .card{
+    background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  .left{display:grid; grid-auto-rows:min-content; gap:12px; overflow:auto; padding-right:4px}
+  .section{padding:14px 16px; display:grid; gap:12px}
+  .section h3{margin:0 0 4px 0; font-size:13px; letter-spacing:0.4px; color:var(--muted); text-transform:uppercase}
+  .grid{display:grid; gap:10px}
+  .grid.cols-2{grid-template-columns: 1fr 1fr}
+  label{font-size:12px; color:#bfc6d4}
+  input[type="text"], input[type="number"], input[type="url"], select{
+    width:100%; padding:10px 12px; border-radius:10px; background:#10131b; color:#e8ecf3;
+    border:1px solid rgba(255,255,255,0.12);
+  }
+  input[type="range"]{width:100%}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .check{display:flex; align-items:center; gap:8px}
+  .sw{appearance:none; width:40px; height:22px; background:#2a2f3b; border-radius:999px; position:relative; outline:none; cursor:pointer}
+  .sw:checked{background:#22d3ee}
+  .sw::after{content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:.18s}
+  .sw:checked::after{left:21px}
+  .color-row{display:flex; gap:10px; align-items:center}
+  .color-row input[type="color"]{width:36px; height:36px; border:0; padding:0; border-radius:8px; background:#10131b}
+  .btn{appearance:none; border:0; background:#22d3ee; color:#001018; font-weight:800; padding:10px 14px; border-radius:12px; cursor:pointer}
+  .btn.secondary{background:#1db954; color:#00130a}
+  .btn.ghost{background:transparent; color:#cdd6e5; border:1px solid rgba(255,255,255,0.18)}
+  .out{display:grid; gap:8px}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#0c0f15; border:1px solid rgba(255,255,255,0.12); padding:8px 10px; border-radius:10px; color:#dbe3f3; overflow:auto}
+  .right{display:grid; grid-template-rows:auto 1fr; gap:12px}
+  .preview-bar{display:flex; align-items:center; justify-content:space-between; padding:12px 14px}
+  .preview-wrap{padding:6px 10px 14px 10px; height:100%}
+  iframe{width:100%; height:100%; border:0; border-radius:12px; background: #0c0f15}
+  .badge{font-size:12px; color:#93a2b8}
+  @media (max-width: 980px){
+    .app{grid-template-columns: 1fr; grid-template-rows: auto 60vh}
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT -->
+    <div class="left">
+      <div class="card section">
+        <h3>Overlay URL</h3>
+        <div class="grid">
+          <label>Hosted base URL</label>
+          <input id="base" type="url" placeholder="https://kelvinph.github.io/SpotiStream/overlay.html" value="https://kelvinph.github.io/SpotiStream/overlay.html"/>
+        </div>
+        <div class="grid out">
+          <label>Generated URL</label>
+          <div id="url" class="mono" style="white-space:nowrap"></div>
+          <div class="row">
+            <button id="copy" class="btn">Copy URL</button>
+            <button id="open" class="btn secondary">Open in new tab</button>
+            <button id="reset" class="btn ghost">Reset</button>
+          </div>
+          <div class="badge">Tip: paste this in OBS → Browser Source → URL</div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h3>Layout</h3>
+        <div class="grid cols-2">
+          <div>
+            <label>Layout</label>
+            <select id="layout">
+              <option value="record">record (vinyl)</option>
+              <option value="card">card (cover)</option>
+              <option value="bar">bar (minimal)</option>
+              <option value="stacked">stacked (center)</option>
+            </select>
+          </div>
+          <div>
+            <label>Theme</label>
+            <select id="theme">
+              <option>spotify</option>
+              <option>obsdark</option>
+              <option>minimal</option>
+              <option>neon</option>
+              <option>oldradio</option>
+              <option>blue</option>
+              <option>red</option>
+              <option>yellow</option>
+              <option>slate</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid cols-2">
+          <div>
+            <label>Disc / Cover size (px)</label>
+            <input id="disc" type="range" min="120" max="360" step="2" value="200" oninput="discOut.textContent=this.value"/>
+            <div class="badge">Current: <span id="discOut">200</span> px</div>
+          </div>
+          <div>
+            <label>Progress height (px)</label>
+            <input id="bar" type="range" min="0" max="16" step="1" value="6" oninput="barOut.textContent=this.value"/>
+            <div class="badge">Current: <span id="barOut">6</span> px</div>
+          </div>
+        </div>
+        <div class="grid cols-2">
+          <div>
+            <label>Corner radius (px)</label>
+            <input id="radius" type="range" min="0" max="24" step="1" value="16" oninput="radOut.textContent=this.value"/>
+            <div class="badge">Current: <span id="radOut">16</span> px</div>
+          </div>
+          <div>
+            <label>Blur (px)</label>
+            <input id="blur" type="range" min="0" max="16" step="1" value="8" oninput="blurOut.textContent=this.value"/>
+            <div class="badge">Current: <span id="blurOut">8</span> px</div>
+          </div>
+        </div>
+        <div class="grid cols-2">
+          <div class="check"><input id="compact" type="checkbox" class="sw"/><label for="compact">Compact spacing</label></div>
+          <div class="check"><input id="spin" type="checkbox" class="sw" checked/><label for="spin">Spin while playing</label></div>
+        </div>
+        <div class="grid cols-2">
+          <div class="check"><input id="labelStatic" type="checkbox" class="sw"/><label for="labelStatic">Keep label upright</label></div>
+          <div class="check"><input id="tonearm" type="checkbox" class="sw" checked/><label for="tonearm">Show tonearm (record)</label></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h3>Elements</h3>
+        <div class="grid cols-2">
+          <div class="check"><input id="showStatus" type="checkbox" class="sw" checked/><label for="showStatus">Status pill</label></div>
+          <div class="check"><input id="showProgress" type="checkbox" class="sw" checked/><label for="showProgress">Progress bar</label></div>
+        </div>
+        <div class="grid cols-2">
+          <div class="check"><input id="showTime" type="checkbox" class="sw" checked/><label for="showTime">Time (elapsed / total)</label></div>
+          <div class="check"><input id="showTitle" type="checkbox" class="sw" checked/><label for="showTitle">Title</label></div>
+        </div>
+        <div class="grid cols-2">
+          <div class="check"><input id="showArtist" type="checkbox" class="sw" checked/><label for="showArtist">Artist</label></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h3>Colors & Fonts</h3>
+        <div class="grid">
+          <div class="color-row">
+            <label style="min-width:120px">Accent</label>
+            <input id="accent" type="color" value="#1db954"/>
+            <label>Text</label>
+            <input id="text" type="color" value="#eaeaea"/>
+            <label>Muted</label>
+            <input id="muted" type="color" value="#b6bcc4"/>
+          </div>
+          <div class="grid cols-2">
+            <div>
+              <label>Font</label>
+              <select id="font">
+                <option value="">(default)</option>
+                <option>inter</option>
+                <option>rubik</option>
+                <option>montserrat</option>
+                <option>poppins</option>
+                <option>firasans</option>
+              </select>
+            </div>
+            <div>
+              <label>Shadow</label>
+              <select id="shadow">
+                <option value="1">on</option>
+                <option value="0">off</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h3>Background</h3>
+        <div class="grid cols-2">
+          <div class="check"><input id="transparent" type="checkbox" class="sw"/><label for="transparent">Transparent panel</label></div>
+          <div class="row">
+            <label>Opacity</label>
+            <input id="panelAlpha" type="range" min="0" max="100" step="1" value="72" oninput="paOut.textContent=this.value+'%'"/>
+          </div>
+          <div class="color-row">
+            <label style="min-width:120px">Panel color</label>
+            <input id="panelColor" type="color" value="#121212"/>
+            <span class="badge">Alpha: <span id="paOut">72%</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <div class="card preview-bar">
+        <div>
+          <div style="font-weight:800">Live Preview</div>
+          <div class="badge">Interact inside the preview to connect to Spotify</div>
+        </div>
+        <div class="badge">Tip: resize the browser to test responsiveness</div>
+      </div>
+      <div class="card preview-wrap">
+        <iframe id="preview" src="" allow="clipboard-read; clipboard-write"></iframe>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const els = {
+    base: $('base'), layout: $('layout'), theme: $('theme'),
+    disc: $('disc'), bar: $('bar'), radius: $('radius'), blur: $('blur'),
+    compact: $('compact'), spin: $('spin'), labelStatic: $('labelStatic'), tonearm: $('tonearm'),
+    showStatus: $('showStatus'), showProgress: $('showProgress'), showTime: $('showTime'),
+    showTitle: $('showTitle'), showArtist: $('showArtist'),
+    accent: $('accent'), text: $('text'), muted: $('muted'), font: $('font'), shadow: $('shadow'),
+    transparent: $('transparent'), panelColor: $('panelColor'), panelAlpha: $('panelAlpha'),
+    url: $('url'), copy: $('copy'), open: $('open'), reset: $('reset'),
+    preview: $('preview')
+  };
+
+  // persist between visits
+  const KEY = 'spotistream_builder_v1';
+  function saveState(){ localStorage.setItem(KEY, JSON.stringify(getState())); }
+  function loadState(){
+    try{
+      const s = JSON.parse(localStorage.getItem(KEY)||'{}');
+      for (const k in s){ if (els[k] && 'value' in els[k]) els[k].value = s[k]; if (els[k] && 'checked' in els[k]) els[k].checked = !!s[k]; }
+    }catch(e){}
+  }
+
+  function hexToRgb(hex){ const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); if(!m) return {r:0,g:0,b:0}; return {r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16)}; }
+  function enc(v){ return encodeURIComponent(v); }
+
+  function getState(){
+    return {
+      base: els.base.value.trim(),
+      layout: els.layout.value, theme: els.theme.value,
+      disc: els.disc.value, bar: els.bar.value, radius: els.radius.value, blur: els.blur.value,
+      compact: els.compact.checked ? 1 : 0,
+      spin: els.spin.checked ? 1 : 0,
+      labelStatic: els.labelStatic.checked ? 1 : 0,
+      tonearm: els.tonearm.checked ? 1 : 0,
+      showStatus: els.showStatus.checked ? 1 : 0,
+      showProgress: els.showProgress.checked ? 1 : 0,
+      showTime: els.showTime.checked ? 1 : 0,
+      showTitle: els.showTitle.checked ? 1 : 0,
+      showArtist: els.showArtist.checked ? 1 : 0,
+      accent: els.accent.value, text: els.text.value, muted: els.muted.value,
+      font: els.font.value, shadow: els.shadow.value,
+      transparent: els.transparent.checked ? 1 : 0,
+      panelColor: els.panelColor.value, panelAlpha: els.panelAlpha.value
+    };
+  }
+
+  function buildURL(){
+    const s = getState();
+    let url = s.base || '';
+    if (!url) return '';
+    const q = new URLSearchParams();
+
+    // Essentials
+    if (s.layout && s.layout!=='record') q.set('layout', s.layout);
+    if (s.theme) q.set('theme', s.theme);
+
+    // Sizes
+    if (s.disc) q.set('disc', s.disc);
+    if (s.bar) q.set('bar', s.bar);
+    if (s.radius) q.set('radius', s.radius);
+    if (s.blur) q.set('blur', s.blur);
+
+    // Toggles
+    if (s.compact) q.set('compact','1');
+    if (!s.spin) q.set('spin','0');
+    if (s.labelStatic) q.set('label','static');
+    if (!s.tonearm) q.set('tonearm','0');
+
+    // Elements
+    if (!s.showStatus) q.set('showstatus','0');
+    if (!s.showProgress) q.set('showprogress','0');
+    if (!s.showTime) q.set('showtime','0');
+    if (!s.showTitle) q.set('title','0');
+    if (!s.showArtist) q.set('artist','0');
+
+    // Colors/fonts
+    if (s.accent) q.set('accent', s.accent);
+    if (s.text) q.set('text', s.text);
+    if (s.muted) q.set('muted', s.muted);
+    if (s.font) q.set('font', s.font);
+    if (s.shadow==='0') q.set('shadow','0');
+
+    // Background
+    if (s.transparent){ q.set('transparent','1'); }
+    else {
+      // panel rgba from color + alpha %
+      const {r,g,b} = hexToRgb(s.panelColor);
+      const a = Math.max(0, Math.min(100, parseInt(s.panelAlpha||'72',10)))/100;
+      q.set('panel', `rgba(${r},${g},${b},${a})`);
+    }
+
+    const sep = url.includes('?') ? '&' : '?';
+    return url + (q.toString() ? sep + q.toString() : '');
+  }
+
+  function render(){
+    const u = buildURL();
+    els.url.textContent = u;
+    els.preview.src = u;
+    saveState();
+  }
+
+  // Events
+  for (const id in els){
+    const n = els[id];
+    if (!n) continue;
+    if (n.tagName==='INPUT' || n.tagName==='SELECT' || n.tagName==='TEXTAREA'){
+      n.addEventListener('input', render);
+      n.addEventListener('change', render);
+    }
+  }
+  els.copy.onclick = async ()=>{ try{ await navigator.clipboard.writeText(els.url.textContent); els.copy.textContent='Copied!'; setTimeout(()=>els.copy.textContent='Copy URL',1200);}catch(e){} };
+  els.open.onclick = ()=>{ if(els.url.textContent) window.open(els.url.textContent,'_blank'); };
+  els.reset.onclick = ()=>{ localStorage.removeItem(KEY); location.reload(); };
+
+  loadState();
+  render();
+</script>
+</body>
+</html>
