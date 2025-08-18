@@ -2,8 +2,6 @@
 
 [![Works in](https://img.shields.io/badge/OBS-Browser%20Source-6aa84f)](#-obs-setup)
 [![Hosting](https://img.shields.io/badge/Hosting-GitHub%20Pages-1da1f2)](#-self-hosting--forks)
-[![Auth](https://img.shields.io/badge/Auth-PKCE%20(client-side)-22b455)](#-privacy--security)
-[![Tech](https://img.shields.io/badge/HTML-CSS-JS-555)](#-developer-notes)
 
 A polished, stream-ready **Now Playing** overlay with a default **vinyl record** look (spinning disc, grooves, center label + optional tonearm). Alternate layouts, themes, and deep customization are available via the built-in **Configurator**. No server. No secrets.
 
