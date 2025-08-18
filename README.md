@@ -1,162 +1,112 @@
-# SpotiStream – Spotify Now Playing Overlay for Streamers
+# SpotiStream · Spotify Now-Playing Overlay for Streamers
 
-Live “Now Playing” overlay with a **vinyl record** look by default (spinning disc, grooves, center label), plus alternate layouts and themes. 100% client-side OAuth (PKCE) — **no server**, no secrets.
+[![Works in](https://img.shields.io/badge/OBS-Browser%20Source-6aa84f)](#-obs-setup)
+[![Hosting](https://img.shields.io/badge/Hosting-GitHub%20Pages-1da1f2)](#-self-hosting--forks)
+[![Auth](https://img.shields.io/badge/Auth-PKCE%20(client-side)-22b455)](#-privacy--security)
+[![Tech](https://img.shields.io/badge/HTML-CSS-JS-555)](#-developer-notes)
 
-**Hosted overlay:**  
-https://kelvinph.github.io/SpotiStream/overlay.html
-
----
-
-## 🚀 Quick Start
-
-1) **Create a Spotify app** → https://developer.spotify.com/dashboard/applications  
-2) App **Settings** → **Redirect URIs** → **Add** (exactly): https://kelvinph.github.io/SpotiStream/overlay.html > Save.  
-3) Copy your **Client ID**.  
-4) In **OBS** → **Sources** → **+** → **Browser** → URL: https://kelvinph.github.io/SpotiStream/overlay.html > (Use any size; e.g. 900×300. You can resize later.)  
-5) Right–click the Browser Source → **Interact** → **Connect to Spotify** → paste your **Client ID** → approve.  
-6) Start playing music in Spotify → the overlay updates automatically.
-
-**Tips for OBS**
-- Do the first login **inside OBS** (Interact). Tokens are stored in OBS’s browser cache.  
-- In Browser Source **Properties**, uncheck:  
-- “Refresh browser when scene becomes active”  
-- “Shutdown source when not visible”  
-- To scale: just resize the Browser Source. Text and spacing are responsive.
+A polished, stream-ready **Now Playing** overlay with a default **vinyl record** look (spinning disc, grooves, center label + optional tonearm). Alternate layouts, themes, and deep customization are available via the built-in **Configurator**. No server. No secrets.
 
 ---
 
-## 🧱 Layouts
+## 🔗 Hosted Overlay & Configurator
 
-Choose with `?layout=<type>`. Default is `record`.
+- **Overlay:** `https://kelvinph.github.io/SpotiStream/overlay.html`  
+- **Configurator (recommended):** `https://kelvinph.github.io/SpotiStream/config.html`  
+  Use the Configurator to design your overlay visually and copy a ready-to-use URL for OBS.
 
-| Layout   | Description | Example |
-|---------|-------------|---------|
-| `record` (default) | Vinyl disc with grooves + center label. Optional tonearm. Spins when playing. | `https://kelvinph.github.io/SpotiStream/overlay.html?theme=spotify` |
-| `card`   | Classic rectangular album art + text. | `https://kelvinph.github.io/SpotiStream/overlay.html?layout=card&theme=obsdark` |
-| `bar`    | Ultra-minimal text strip (no art/disc). Great for compact HUDs. | `https://kelvinph.github.io/SpotiStream/overlay.html?layout=bar&theme=minimal&bar=4` |
-| `stacked`| Disc on top, text below. Centered showcase. | `https://kelvinph.github.io/SpotiStream/overlay.html?layout=stacked&theme=oldradio&font=inter` |
-
-**Behavior switches**
-- `spin=0` → stop disc spinning  
-- `label=static` → keep the **center label upright** while disc spins  
-- `compact=1` → tighter spacing (any layout)
+> The Configurator includes presets, layout selection, color mode, accent styles, fonts, transparency, spacing, and element toggles. It also has a **Demo** switch so you can preview without logging in.
 
 ---
 
-## 🎨 Themes
+## 🚀 Quick Start (First-Time Setup)
 
-Pick with `?theme=<name>`. You can mix with any layout.
+1. Create a Spotify app → <https://developer.spotify.com/dashboard/applications>  
+2. **App Settings → Redirect URIs → Add** (exactly):  
+   `https://kelvinph.github.io/SpotiStream/overlay.html` → **Save**  
+3. Copy your **Client ID**.  
+4. Open the **Configurator**, design your overlay, and **Copy URL**.  
+5. In **OBS** → **Sources** → **+** → **Browser** → paste the copied URL.  
+   - A good starting size is **900 × 300** (you can resize later).  
+6. Right-click the Browser Source → **Interact** → **Connect to Spotify** → paste your **Client ID** → approve.  
+7. Start playing music in Spotify. The overlay updates automatically.
 
-- `spotify` – classic green on dark  
-- `obsdark` – near-black to match OBS  
-- `minimal` – low blur, thin progress bar, white accent  
-- `neon` – cool blue glow  
-- `oldradio` – sepia/amber vintage  
-- `blue` – cool blue accent  
-- `red` – bold red  
-- `yellow` – warm yellow  
-- `slate` – neutral glass
-
-**Copy-paste links**
-https://kelvinph.github.io/SpotiStream/overlay.html?theme=spotify
-https://kelvinph.github.io/SpotiStream/overlay.html?layout=card&theme=obsdark
-https://kelvinph.github.io/SpotiStream/overlay.html?layout=bar&theme=minimal&bar=4
-https://kelvinph.github.io/SpotiStream/overlay.html?layout=stacked&theme=oldradio&font=inter
-
+> **Tip:** Do the first login **inside OBS** (Interact). Tokens are stored in OBS’s browser cache.
 
 ---
 
-## 🔧 Customization (URL Parameters)
+## 🎛️ What You Can Customize (in the Configurator)
 
-Append these to the URL (after `?` and join with `&`).
-
-### Layout & behavior
-- `layout=record|card|bar|stacked`  
-- `spin=0` – disable spinning  
-- `label=static` – keep record label upright  
-- `compact=1` – tighter spacing
-
-### Sizing
-- `disc=200` – record/cover size in px (alias: `art=200`)  
-- `bar=6` – progress bar height in px  
-- (The overlay centers itself and clamps width for readability; scale more by resizing the Browser Source.)
-
-### Colors
-- `accent=%231db954` – accent color (hex needs `%23` instead of `#`)  
-- `panel=rgba(0,0,0,0.55)` – panel background (set `0` alpha for more transparent)  
-- `text=%23ffffff` – main text  
-- `muted=%23b3b3b3` – secondary text  
-- `radius=16` – corner radius in px  
-- `blur=8` – glass blur strength  
-- `shadow=0` – disable panel shadow
-
-### Fonts (Google Fonts)
-- `font=inter|rubik|montserrat|poppins|firasans`  
-  Example:  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?theme=oldradio&layout=stacked&font=inter`
+- **Layouts:**  
+  - **Record** (vinyl disc with grooves + optional tonearm)  
+  - **Card** (album cover + text)  
+  - **Bar** (ultra-minimal text HUD)  
+  - **Stacked** (disc/cover on top, text below; centered)
+- **Media position:** left/right (for Record & Card)
+- **Color mode:**  
+  - **Theme** — pick from curated presets (Spotify, OBS Dark, Minimal, Neon, Old Radio, Blue, Red, Yellow, Slate, Twitch, YouTube Red, Aqua, Cyber, Pastel)  
+  - **Custom** — choose your own **Accent**, **Text**, **Muted**, and **Panel** colors
+- **Accent style:** Solid · Glow · Gradient
+- **Fonts:** Inter, Rubik, Montserrat, Poppins, Fira Sans (loaded from Google Fonts)
+- **Sizing & spacing:** disc/cover size, progress height, corner radius, blur, padding, compact spacing
+- **Behavior:** spin while playing, keep label upright (Record), show/hide tonearm
+- **Elements:** status pill, progress bar, elapsed/total time, title, artist, optional “Next up”
+- **Background:** transparent mode, panel opacity & color
+- **Utilities:** Demo preview toggle for testing; one-click Transparent HUD preset
 
 ---
 
-## 🧪 Ready-to-Use Preset Links
+## 🧪 Presets (available inside the Configurator)
 
-- **Default record (Spotify theme):**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?theme=spotify`
+- **Record (Spotify)** — classic green on dark  
+- **Card (OBS Dark)** — matches OBS’s near-black UI  
+- **Bar Minimal** — tiny text-only HUD for clean overlays  
+- **Stacked Vintage** — warm “old radio” aesthetic  
+- **Transparent HUD** — no panel, great over gameplay
 
-- **Record with static label (easier to read art):**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?theme=spotify&label=static`
-
-- **Card layout (OBS dark):**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?layout=card&theme=obsdark`
-
-- **Minimal bar HUD:**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?layout=bar&theme=minimal&bar=4&compact=1`
-
-- **Stacked vintage center:**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?layout=stacked&theme=oldradio&font=inter`
-
-- **Compact record, smaller disc (blue):**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?theme=blue&disc=170&compact=1`
-
-- **Yellow record for warm scenes:**  
-  `https://kelvinph.github.io/SpotiStream/overlay.html?theme=yellow&disc=210`
+> All presets are editable. Tweak sizes, fonts, accent style, and element visibility, then copy your URL.
 
 ---
 
-## 📸 Screenshots (optional)
+## 🧩 OBS Setup
 
-Create `screenshots/` and add PNGs, then reference like:
-
-| Preset | Preview |
-|---|---|
-| Record + Spotify | ![Record + Spotify](./record-spotify.png) |
-| Card + OBS Dark | ![Card + OBS Dark](./card-obsdark.png) |
-| Bar + Minimal | ![Bar + Minimal](./bar-minimal.png) |
-| Stacked + Old Radio | ![Stacked + Old Radio](./stacked-oldradio.png) |
+1. **Browser Source** → paste the URL generated by the Configurator.  
+2. **Scale** by resizing the source; the overlay is fully responsive.  
+3. To keep tokens and avoid flicker, open Browser Source **Properties** and uncheck:  
+   - **Refresh browser when scene becomes active**  
+   - **Shutdown source when not visible**  
+4. First-time auth: **Right-click → Interact** inside OBS and connect to Spotify there.
 
 ---
 
 ## ❓ Troubleshooting
 
-**It loops or says Redirect error**  
-Your Spotify app’s **Redirect URI** must match **exactly**:  
+**Redirect / mismatch error**  
+Ensure the Spotify app’s **Redirect URI** matches your overlay exactly:  
 `https://kelvinph.github.io/SpotiStream/overlay.html`
 
-**I logged in on Chrome but OBS asks again**  
-OBS’s Browser Source is a separate sandbox. Do the **one-time login inside OBS** (Right-click → Interact). It persists in OBS’s cache.
+**OBS asks to login again**  
+Web browsers and OBS use different storage. Do the **first login in OBS** using **Interact**.
 
-**Overlay resets when I switch scenes**  
-In Browser Source **Properties**, uncheck:  
-- “Refresh browser when scene becomes active”  
-- “Shutdown source when not visible”
+**Overlay shows “Nothing playing”**  
+Start playback on the same Spotify account that you authenticated. Free accounts work.
 
-**Nothing shows**  
-Make sure Spotify is actively playing on your account. (Premium **not** required.)
+**Changes don’t appear**  
+You may be seeing a cached file. Use **Ctrl+F5** (hard refresh) or open the overlay in a private/incognito window.
+
+**Performance tips**  
+- Keep **blur** modest on low-end systems.  
+- Use **Bar** layout for very small overlays.
 
 ---
 
+## 🔒 Privacy & Security
 
-## 🔒 Privacy
+- Uses **OAuth 2.1 PKCE** directly in the browser.  
+- No client secret required; **no server** involved.  
+- Tokens are stored locally in your browser/OBS environment.  
+- This project never receives or stores your tokens.
 
-Uses **OAuth PKCE** in the browser. No client secret. Tokens are stored locally in your browser/OBS environment.
+
 
 
