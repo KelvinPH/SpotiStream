@@ -45,14 +45,27 @@
   .tonearm .head{position:absolute; right:0; top:6px; width:22px; height:14px; background:linear-gradient(#666,#333); border-radius:3px}
   .tonearm .joint{position:absolute; left:-8px; top:6px; width:14px; height:14px; border-radius:50%; background:#a7a7a7; box-shadow: inset 0 1px 2px rgba(0,0,0,0.45)}
   .artbox{grid-area:art; width:var(--disc); height:var(--disc); border-radius:12px; overflow:hidden; background:#222 center/cover no-repeat; box-shadow: 0 10px 30px rgba(0,0,0,0.38);}
-  .title{font-size:var(--title-size); font-weight:800; letter-spacing:0.2px; white-space:nowrap; overflow:hidden; -webkit-mask-image: linear-gradient(90deg,#000 90%,transparent 100%); mask-image: linear-gradient(90deg,#000 90%,transparent 100%);}
-  .artist{font-size:var(--artist-size); color:var(--muted); white-space:nowrap; overflow:hidden; -webkit-mask-image: linear-gradient(90deg,#000 92%,transparent 100%); mask-image: linear-gradient(90deg,#000 92%,transparent 100%);}
+
+  /* Title/artist */
+  .title,.artist{white-space:nowrap; overflow:hidden}
+  .title{font-size:var(--title-size); font-weight:800; letter-spacing:0.2px;
+    -webkit-mask-image: linear-gradient(90deg,#000 90%,transparent 100%); mask-image: linear-gradient(90deg,#000 90%,transparent 100%);}
+  .artist{font-size:var(--artist-size); color:var(--muted);
+    -webkit-mask-image: linear-gradient(90deg,#000 92%,transparent 100%); mask-image: linear-gradient(90deg,#000 92%,transparent 100%);}
+
+  /* Marquee scrolling */
+  .marquee{ position:relative; overflow:hidden; }
+  .marquee span{ display:inline-block; padding-right:60px; will-change:transform; animation:marquee var(--marq-s,18s) linear infinite; }
+  @keyframes marquee{ from{ transform:translateX(0) } to{ transform:translateX(-50%) } }
+
   .row{display:flex; align-items:center; gap:8px}
   .pill{display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px}
   .dot{width:6px; height:6px; border-radius:999px; background:var(--accent); box-shadow:0 0 8px var(--accent)}
   .progress{height:var(--bar-h); border-radius:999px; position:relative; overflow:hidden; background: rgba(255,255,255,0.18)}
   .bar{position:absolute; inset:0 100% 0 0; background: var(--accent); border-radius:999px}
   .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted)}
+  .next{font-size:12px; color:var(--muted)}
+
   .btn{appearance:none; border:0; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer; background:var(--accent); color:#000; box-shadow: var(--shadow)}
   .setup{display:grid; gap:12px}
   .field{display:grid; gap:6px}
@@ -79,6 +92,7 @@
         <div id="artist" class="artist">—</div>
         <div id="progress" class="progress" title="Progress"><div id="bar" class="bar"></div></div>
         <div id="timeRow" class="time"><div id="elapsed">0:00</div><div id="duration">0:00</div></div>
+        <div id="nextRow" class="next hidden"></div>
         <div id="setup" class="setup hidden">
           <div class="field"><label for="clientId">Spotify Client ID</label><input id="clientId" class="input" placeholder="paste your Client ID"/></div>
           <button id="save" class="btn">Save Client ID</button>
@@ -90,6 +104,7 @@
   </div>
 
 <script>
+  /* ---------- Themes & fonts ---------- */
   const THEMES = {
     spotify:{panel:'rgba(18,18,18,0.72)',text:'#eaeaea',muted:'#b6bcc4',accent:'#1db954',radius:16,blur:8},
     obsdark:{panel:'rgba(24,24,27,0.72)',text:'#e6e7ea',muted:'#9da3ad',accent:'#22d3ee',radius:14,blur:6},
@@ -118,22 +133,24 @@
       const fam={inter:'"Inter"',rubik:'"Rubik"',montserrat:'"Montserrat"',poppins:'"Poppins"',firasans:'"Fira Sans"'}[key];
       if(fam) document.documentElement.style.setProperty('--font',`${fam}, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`); } }
 
-  const p=new URLSearchParams(location.search);
-  const inner=document.getElementById('inner');
-  const discEl=document.getElementById('disc');
-  const artbox=document.getElementById('artbox');
-  const tonearm=document.getElementById('tonearm');
+  /* ---------- URL params ---------- */
+  const p = new URLSearchParams(location.search);
+  const inner = document.getElementById('inner');
+  const discEl = document.getElementById('disc');
+  const artbox = document.getElementById('artbox');
+  const tonearm = document.getElementById('tonearm');
+  const nextRow = document.getElementById('nextRow');
 
-  const layout=(p.get('layout')||'record').toLowerCase();
-  inner.className=`inner layout-${layout}`;
-  if(layout!=='record') tonearm.style.display='none';
-  if(layout==='card'){ discEl.style.display='none'; artbox.classList.remove('hidden'); }
+  const layout = (p.get('layout')||'record').toLowerCase();
+  inner.className = `inner layout-${layout}`;
+  if (layout!=='record') tonearm.style.display='none';
+  if (layout==='card'){ discEl.style.display='none'; artbox.classList.remove('hidden'); }
 
   const themeKey=(p.get('theme')||'spotify').toLowerCase();
-  if(THEMES[themeKey]) applyVars(THEMES[themeKey]);
+  if (THEMES[themeKey]) applyVars(THEMES[themeKey]);
 
   const map={accent:'--accent',panel:'--panel',text:'--text',muted:'--muted'};
-  for(const [k,css] of Object.entries(map)){ const v=p.get(k); if(v) document.documentElement.style.setProperty(css,v); }
+  for (const [k,css] of Object.entries(map)){ const v=p.get(k); if(v) document.documentElement.style.setProperty(css,v); }
   if(p.get('radius')) document.documentElement.style.setProperty('--radius',p.get('radius')+'px');
   if(p.get('blur'))   document.documentElement.style.setProperty('--blur',p.get('blur')+'px');
   if(p.get('bar'))    document.documentElement.style.setProperty('--bar-h',p.get('bar')+'px');
@@ -141,25 +158,29 @@
   if(p.get('shadow')==='0') document.documentElement.style.setProperty('--shadow','none');
   if(p.get('compact')==='1') document.getElementById('card').classList.add('compact');
   if((p.get('label')||'')==='static') discEl.classList.add('label-static');
-  window.__forceSpin=p.get('spin'); // '0' disables
+  if(p.get('tonearm')==='0') tonearm.style.display='none';
 
-  // New quick transparent toggle
+  // Quick transparent preset
   if(p.get('transparent')==='1'){
     const r=document.documentElement.style;
     r.setProperty('--panel','rgba(0,0,0,0)'); r.setProperty('--blur','0px'); r.setProperty('--shadow','none'); r.setProperty('--radius','0px');
   }
-  // New element toggles
-  if(p.get('showstatus')==='0') document.getElementById('statusRow').style.display='none';
-  if(p.get('showprogress')==='0') document.getElementById('progress').style.display='none';
-  if(p.get('showtime')==='0') document.getElementById('timeRow').style.display='none';
-  if(p.get('title')==='0') document.getElementById('title').style.display='none';
-  if(p.get('artist')==='0') document.getElementById('artist').style.display='none';
-  if(p.get('tonearm')==='0') tonearm.style.display='none';
 
+  // Scrolling (marquee) default ON unless scroll=0
+  const scrollOn = p.get('scroll') !== '0';
+
+  // Auto-accent default ON unless autoaccent=0
+  const autoAccent = p.get('autoaccent') !== '0';
+
+  // Show Next default: only on stacked unless next=0; enable if next=1 on any layout
+  const nextParam = p.get('next');
+  const showNext = (nextParam==='1') || (nextParam===null && layout==='stacked');
+
+  // Fonts
   applyFont(p.get('font'));
 
-  // ----- Spotify logic -----
-  const SCOPES=['user-read-playback-state','user-read-currently-playing'];
+  /* ---------- Spotify & demo ---------- */
+  const SCOPES=['user-read-playback-state','user-read-currently-playing']; // queue needs read-playback-state
   const TOKEN_URL='https://accounts.spotify.com/api/token';
   const AUTH_URL='https://accounts.spotify.com/authorize';
   const REDIRECT_URI=window.location.origin+window.location.pathname;
@@ -171,26 +192,35 @@
 
   let accessToken=null, refreshToken=null, expiresAt=0;
   let playing=false, progressMs=0, durationMs=0;
+
   const K={clientId:'obs_spotify_client_id',verifier:'obs_spotify_code_verifier',access:'obs_spotify_access_token',refresh:'obs_spotify_refresh_token',expires:'obs_spotify_expires_at'};
 
   async function sha256(str){ const buf=new TextEncoder().encode(str); const d=await crypto.subtle.digest('SHA-256',buf); return new Uint8Array(d); }
   function base64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
   function randString(n=64){ const a=new Uint8Array(n); crypto.getRandomValues(a); return base64url(a).slice(0,n); }
+
   function msToClock(ms){ ms=Math.max(0,Math.floor(ms)); const t=Math.floor(ms/1000); const m=Math.floor(t/60); const s=t%60; return `${m}:${s.toString().padStart(2,'0')}`; }
   function setProgress(p){ const c=Math.max(0,Math.min(1,p)); barEl.style.inset=`0 ${(1-c)*100}% 0 0`; elapsedEl.textContent=msToClock(progressMs); durationEl.textContent=msToClock(durationMs); }
   function setStatus(t){ statusEl.textContent=t; }
   function showSetup(b){ document.getElementById('setup').classList.toggle('hidden',!b); }
+
   function loadStored(){ accessToken=localStorage.getItem(K.access); refreshToken=localStorage.getItem(K.refresh); expiresAt=parseInt(localStorage.getItem(K.expires)||'0',10); return !!accessToken; }
   function saveTokens(a,r,e){ if(a){accessToken=a;localStorage.setItem(K.access,a);} if(r){refreshToken=r;localStorage.setItem(K.refresh,r);} if(e){expiresAt=Date.now()+e*1000-10000; localStorage.setItem(K.expires,String(expiresAt));} }
   async function fetchJSON(url,opts={}){ const res=await fetch(url,opts); if(res.status===204) return null; if(!res.ok) throw new Error(`HTTP ${res.status}`); return await res.json(); }
-  async function refresh(){ const cid=localStorage.getItem(K.clientId); if(!refreshToken||!cid) return;
+
+  async function refresh(){
+    const cid=localStorage.getItem(K.clientId); if(!refreshToken||!cid) return;
     const body=new URLSearchParams({client_id:cid,grant_type:'refresh_token',refresh_token:refreshToken});
     try{ const tok=await fetchJSON(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-      saveTokens(tok.access_token,tok.refresh_token||refreshToken,tok.expires_in);}catch(e){ console.error('Refresh failed',e); setStatus('Refresh failed'); } }
+         saveTokens(tok.access_token,tok.refresh_token||refreshToken,tok.expires_in);
+    }catch(e){ console.error('Refresh failed', e); setStatus('Refresh failed'); }
+  }
+
   async function ensureToken(){
     const cid=localStorage.getItem(K.clientId);
     if(!cid){ showSetup(true); setStatus('Setup required'); return false; }
-    const url=new URL(window.location.href); const code=url.searchParams.get('code'); const err=url.searchParams.get('error');
+    const url=new URL(window.location.href);
+    const code=url.searchParams.get('code'); const err=url.searchParams.get('error');
     if(err){ showSetup(true); setStatus('Auth error'); console.error('Spotify auth error:',err); return false; }
     if(code){
       const verifier=localStorage.getItem(K.verifier);
@@ -204,37 +234,172 @@
     loadStored(); if(!accessToken){ if(refreshToken){ await refresh(); } else { showSetup(true); setStatus('Not connected'); return false; } }
     if(Date.now()>expiresAt) await refresh(); return true;
   }
+
   async function getCurrentlyPlaying(){
     const ok=await ensureToken(); if(!ok||!accessToken) return null;
     try{ return await fetchJSON('https://api.spotify.com/v1/me/player/currently-playing',{ headers:{ Authorization:`Bearer ${accessToken}` } }); }
     catch(e){ if(String(e).includes('401')) await refresh(); return null; }
   }
-  function renderNothing(){ playing=false; titleEl.textContent='Nothing playing'; artistEl.textContent='—'; setStatus('Paused'); durationMs=progressMs=0; setProgress(0); discEl.classList.remove('spin'); labelDiv.style.backgroundImage=''; artbox.style.backgroundImage=''; }
-  function renderTrack(payload){
-    const item=payload?.item; if(!item){ renderNothing(); return; }
-    const img=(item.album?.images?.[0]?.url)||(item.album?.images?.[1]?.url)||(item.album?.images?.[2]?.url)||'';
-    if(img){ labelDiv.style.backgroundImage=`url('${img}')`; artbox.style.backgroundImage=`url('${img}')`; }
-    const artists=(item.artists||[]).map(a=>a.name).join(', ');
-    if(document.getElementById('title').style.display!=='none') titleEl.textContent=item.name||'Untitled';
-    if(document.getElementById('artist').style.display!=='none') artistEl.textContent=artists||'Unknown artist';
-    playing=!!payload.is_playing; setStatus(playing?'Playing':'Paused');
-    const allowSpin=!(window.__forceSpin==='0'); discEl.classList.toggle('spin', playing && allowSpin);
-    durationMs=item.duration_ms||0; progressMs=payload.progress_ms||0; setProgress(durationMs?progressMs/durationMs:0);
+
+  async function getQueue(){
+    try{
+      const q = await fetchJSON('https://api.spotify.com/v1/me/player/queue',{ headers:{ Authorization:`Bearer ${accessToken}` } });
+      return q;
+    }catch(e){ return null; }
   }
+
+  // Marquee helpers
+  function setMarquee(el, text, enable){
+    if(!enable){
+      el.classList.remove('marquee'); el.textContent = text; return;
+    }
+    el.classList.remove('marquee'); el.textContent = text;
+    requestAnimationFrame(()=>{
+      if (el.scrollWidth > el.clientWidth + 8){
+        el.classList.add('marquee');
+        el.innerHTML = '';
+        const s1 = document.createElement('span'); s1.textContent = text + '   •   ';
+        const s2 = document.createElement('span'); s2.textContent = text + '   •   ';
+        el.appendChild(s1); el.appendChild(s2);
+      }
+    });
+  }
+
+  // Auto-accent from album label image
+  function autoAccentFromImage(url){
+    try{
+      const img = new Image(); img.crossOrigin = 'anonymous';
+      img.onload = ()=>{
+        const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+        const w=32,h=32; c.width=w; c.height=h; ctx.drawImage(img,0,0,w,h);
+        const d = ctx.getImageData(0,0,w,h).data;
+        let r=0,g=0,b=0,n=0;
+        for(let i=0;i<d.length;i+=4){ const R=d[i],G=d[i+1],B=d[i+2],A=d[i+3]; if(A<10) continue; r+=R; g+=G; b+=B; n++; }
+        if(n>0){
+          r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
+          // bump saturation a touch
+          const accent = `rgb(${r},${g},${b})`;
+          document.documentElement.style.setProperty('--accent', accent);
+        }
+      };
+      img.src = url;
+    }catch(e){}
+  }
+
+  function renderNothing(){
+    playing=false;
+    setMarquee(titleEl,'Nothing playing',false);
+    setMarquee(artistEl,'—',false);
+    setStatus('Paused');
+    durationMs=progressMs=0; setProgress(0);
+    discEl.classList.remove('spin');
+    labelDiv.style.backgroundImage = '';
+    artbox.style.backgroundImage = '';
+    if (nextRow) nextRow.classList.add('hidden');
+  }
+
+  function renderTrack(payload){
+    const item=payload?.item;
+    if(!item){ renderNothing(); return; }
+
+    const img=(item.album?.images?.[0]?.url)||(item.album?.images?.[1]?.url)||(item.album?.images?.[2]?.url)||'';
+    if (img){ labelDiv.style.backgroundImage=`url('${img}')`; artbox.style.backgroundImage=`url('${img}')`; if(autoAccent) autoAccentFromImage(img); }
+
+    const artists=(item.artists||[]).map(a=>a.name).join(', ');
+    setMarquee(titleEl, item.name || 'Untitled', true && scrollOn);
+    setMarquee(artistEl, artists || 'Unknown artist', true && scrollOn);
+
+    playing = !!payload.is_playing;
+    setStatus(playing?'Playing':'Paused');
+
+    const allowSpin = (new URLSearchParams(location.search).get('spin') !== '0');
+    discEl.classList.toggle('spin', playing && allowSpin);
+
+    durationMs=item.duration_ms||0;
+    progressMs=payload.progress_ms||0;
+    setProgress(durationMs?progressMs/durationMs:0);
+  }
+
+  async function renderNext(){
+    if (!showNext){ nextRow?.classList.add('hidden'); return; }
+    if (!accessToken){ nextRow?.classList.add('hidden'); return; }
+    const q = await getQueue();
+    const next = q?.queue?.[0];
+    if (next){
+      const a = (next.artists||[]).map(x=>x.name).join(', ');
+      nextRow.textContent = `Next: ${next.name || 'Unknown'} — ${a || ''}`;
+      nextRow.classList.remove('hidden');
+    }else{
+      nextRow.classList.add('hidden');
+    }
+  }
+
   function initSetup(){
     const clientIdInput=document.getElementById('clientId'), saveBtn=document.getElementById('save'), connectBtn=document.getElementById('connect');
     clientIdInput.value=localStorage.getItem(K.clientId)||'';
     saveBtn.onclick=()=>{ const v=clientIdInput.value.trim(); if(!v) return alert('Please paste your Spotify Client ID'); localStorage.setItem(K.clientId,v); alert('Saved! Now click Connect to Spotify.'); };
     connectBtn.onclick=async()=>{ const cid=localStorage.getItem(K.clientId); if(!cid) return alert('Save your Client ID first.');
-      const verifier=randString(64); const challenge=await sha256(verifier).then(buf=>base64url(buf)); localStorage.setItem(K.verifier,verifier);
-      const a=new URL('https://accounts.spotify.com/authorize'); a.searchParams.set('response_type','code'); a.searchParams.set('client_id',cid);
-      a.searchParams.set('redirect_uri',REDIRECT_URI); a.searchParams.set('scope',['user-read-playback-state','user-read-currently-playing'].join(' '));
-      a.searchParams.set('code_challenge_method','S256'); a.searchParams.set('code_challenge',challenge); window.location.href=a.toString(); };
+      const verifier=randString(64);
+      const challenge=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
+        .then(buf=>btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''));
+      localStorage.setItem(K.verifier,verifier);
+      const a=new URL(AUTH_URL); a.searchParams.set('response_type','code'); a.searchParams.set('client_id',cid);
+      a.searchParams.set('redirect_uri',REDIRECT_URI); a.searchParams.set('scope',SCOPES.join(' '));
+      a.searchParams.set('code_challenge_method','S256'); a.searchParams.set('code_challenge',challenge);
+      window.location.href=a.toString();
+    };
   }
+
+  /* Demo mode for configurator/preview */
+  const demoMode = (p.get('demo')==='1');
+  function startDemo(){
+    showSetup(false);
+    const demoImg = 'https://i.scdn.co/image/ab67616d0000b273d4c3de2d8d1a6ca5b9e3b123'; // public album art
+    const demo = {
+      item: {
+        name: 'Midnight Drive (Demo)',
+        artists: [{name:'Lumen & Co'}],
+        duration_ms: 212000,
+        album: { images: [{url: demoImg}] }
+      },
+      is_playing: true,
+      progress_ms: 42000
+    };
+    renderTrack(demo);
+    setInterval(()=>{ // loop progress
+      playing=true; progressMs+=250; if(progressMs>durationMs) progressMs=0; setProgress(progressMs/durationMs);
+    },250);
+  }
+
   (async function main(){
-    initSetup(); await ensureToken(); showSetup(!accessToken);
-    setInterval(async()=>{ const data=await getCurrentlyPlaying(); if(!data){ renderNothing(); return; } renderTrack(data); },3000);
-    setInterval(()=>{ if(playing&&durationMs>0){ progressMs+=250; if(progressMs>durationMs) progressMs=durationMs; setProgress(progressMs/durationMs); } },250);
+    initSetup();
+
+    if (demoMode){
+      startDemo();
+    } else {
+      await ensureToken();
+      showSetup(!accessToken);
+
+      setInterval(async ()=>{
+        const data = await getCurrentlyPlaying();
+        if(!data){ renderNothing(); return; }
+        renderTrack(data);
+      }, 3000);
+
+      // smooth progress
+      setInterval(()=>{
+        if(playing && durationMs>0){
+          progressMs += 250; if(progressMs>durationMs) progressMs=durationMs;
+          setProgress(progressMs/durationMs);
+        }
+      }, 250);
+
+      // next up (stacked only by default)
+      if (showNext){
+        await renderNext();
+        setInterval(renderNext, 15000);
+      }
+    }
   })();
 </script>
 </body>
