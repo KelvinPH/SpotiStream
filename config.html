@@ -16,7 +16,7 @@
     color:var(--text); font:500 14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
-  .app{display:grid; grid-template-columns: 420px 1fr; gap:18px; height:100%; padding:18px}
+  .app{display:grid; grid-template-columns: 430px 1fr; gap:18px; height:100%; padding:18px}
   .card{
     background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
     border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,0.35);
@@ -38,11 +38,12 @@
   .sw:checked{background:#22d3ee}
   .sw::after{content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:.18s}
   .sw:checked::after{left:21px}
-  .color-row{display:flex; gap:10px; align-items:center}
+  .color-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
   .color-row input[type="color"]{width:36px; height:36px; border:0; padding:0; border-radius:8px; background:#10131b}
   .btn{appearance:none; border:0; background:#22d3ee; color:#001018; font-weight:800; padding:10px 14px; border-radius:12px; cursor:pointer}
   .btn.secondary{background:#1db954; color:#00130a}
   .btn.ghost{background:transparent; color:#cdd6e5; border:1px solid rgba(255,255,255,0.18)}
+  .btn.small{padding:8px 10px; font-weight:700}
   .out{display:grid; gap:8px}
   .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#0c0f15; border:1px solid rgba(255,255,255,0.12); padding:8px 10px; border-radius:10px; color:#dbe3f3; overflow:auto}
   .right{display:grid; grid-template-rows:auto 1fr; gap:12px}
@@ -50,6 +51,7 @@
   .preview-wrap{padding:6px 10px 14px 10px; height:100%}
   iframe{width:100%; height:100%; border:0; border-radius:12px; background: #0c0f15}
   .badge{font-size:12px; color:#93a2b8}
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
   @media (max-width: 980px){
     .app{grid-template-columns: 1fr; grid-template-rows: auto 60vh}
   }
@@ -63,7 +65,13 @@
         <h3>Overlay URL</h3>
         <div class="grid">
           <label>Hosted base URL</label>
-          <input id="base" type="url" placeholder="https://kelvinph.github.io/SpotiStream/overlay.html" value="https://kelvinph.github.io/SpotiStream/overlay.html"/>
+          <input id="base" type="url" placeholder="https://<user>.github.io/SpotiStream/overlay.html" value="https://kelvinph.github.io/SpotiStream/overlay.html"/>
+        </div>
+        <div class="chips">
+          <button class="btn small ghost" data-preset="record">Record (Spotify)</button>
+          <button class="btn small ghost" data-preset="card">Card (OBS Dark)</button>
+          <button class="btn small ghost" data-preset="bar">Bar Minimal</button>
+          <button class="btn small ghost" data-preset="transparent">Transparent HUD</button>
         </div>
         <div class="grid out">
           <label>Generated URL</label>
@@ -73,7 +81,7 @@
             <button id="open" class="btn secondary">Open in new tab</button>
             <button id="reset" class="btn ghost">Reset</button>
           </div>
-          <div class="badge">Tip: paste this in OBS → Browser Source → URL</div>
+          <div class="badge">Paste this into OBS → Browser Source → URL</div>
         </div>
       </div>
 
@@ -86,7 +94,7 @@
               <option value="record">record (vinyl)</option>
               <option value="card">card (cover)</option>
               <option value="bar">bar (minimal)</option>
-              <option value="stacked">stacked (center)</option>
+              <option value="stacked">stacked (center + next up)</option>
             </select>
           </div>
           <div>
@@ -145,11 +153,20 @@
           <div class="check"><input id="showProgress" type="checkbox" class="sw" checked/><label for="showProgress">Progress bar</label></div>
         </div>
         <div class="grid cols-2">
-          <div class="check"><input id="showTime" type="checkbox" class="sw" checked/><label for="showTime">Time (elapsed / total)</label></div>
+          <div class="check"><input id="showTime" type="checkbox" class="sw" checked/><label for="showTime">Time (elapsed/total)</label></div>
           <div class="check"><input id="showTitle" type="checkbox" class="sw" checked/><label for="showTitle">Title</label></div>
         </div>
         <div class="grid cols-2">
           <div class="check"><input id="showArtist" type="checkbox" class="sw" checked/><label for="showArtist">Artist</label></div>
+          <div class="check"><input id="showNext" type="checkbox" class="sw"/><label for="showNext">Show Next (stacked)</label></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h3>Text & Motion</h3>
+        <div class="grid cols-2">
+          <div class="check"><input id="scroll" type="checkbox" class="sw" checked/><label for="scroll">Scroll long text</label></div>
+          <div class="check"><input id="autoAccent" type="checkbox" class="sw" checked/><label for="autoAccent">Auto-accent from album art</label></div>
         </div>
       </div>
 
@@ -202,6 +219,14 @@
           </div>
         </div>
       </div>
+
+      <div class="card section">
+        <h3>Preview & Presets</h3>
+        <div class="grid cols-2">
+          <div class="check"><input id="demo" type="checkbox" class="sw" checked/><label for="demo">Use demo data in preview</label></div>
+          <button id="transparentPreset" class="btn ghost">1-click Transparent</button>
+        </div>
+      </div>
     </div>
 
     <!-- RIGHT -->
@@ -209,9 +234,9 @@
       <div class="card preview-bar">
         <div>
           <div style="font-weight:800">Live Preview</div>
-          <div class="badge">Interact inside the preview to connect to Spotify</div>
+          <div class="badge">You can Interact inside the preview to login (turn off demo)</div>
         </div>
-        <div class="badge">Tip: resize the browser to test responsiveness</div>
+        <div class="badge">Resize your browser to test scaling</div>
       </div>
       <div class="card preview-wrap">
         <iframe id="preview" src="" allow="clipboard-read; clipboard-write"></iframe>
@@ -226,58 +251,91 @@
     disc: $('disc'), bar: $('bar'), radius: $('radius'), blur: $('blur'),
     compact: $('compact'), spin: $('spin'), labelStatic: $('labelStatic'), tonearm: $('tonearm'),
     showStatus: $('showStatus'), showProgress: $('showProgress'), showTime: $('showTime'),
-    showTitle: $('showTitle'), showArtist: $('showArtist'),
+    showTitle: $('showTitle'), showArtist: $('showArtist'), showNext: $('showNext'),
+    scroll: $('scroll'), autoAccent: $('autoAccent'),
     accent: $('accent'), text: $('text'), muted: $('muted'), font: $('font'), shadow: $('shadow'),
     transparent: $('transparent'), panelColor: $('panelColor'), panelAlpha: $('panelAlpha'),
+    demo: $('demo'), transparentPreset: $('transparentPreset'),
     url: $('url'), copy: $('copy'), open: $('open'), reset: $('reset'),
     preview: $('preview')
   };
 
+  // preset chips
+  document.querySelectorAll('[data-preset]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const p = btn.dataset.preset;
+      if (p==='record'){
+        els.layout.value='record'; els.theme.value='spotify';
+        els.disc.value=200; els.bar.value=6; els.radius.value=16; els.blur.value=8;
+        els.compact.checked=false; els.spin.checked=true; els.labelStatic.checked=false; els.tonearm.checked=true;
+        els.showStatus.checked=true; els.showProgress.checked=true; els.showTime.checked=true; els.showTitle.checked=true; els.showArtist.checked=true; els.showNext.checked=false;
+        els.scroll.checked=true; els.autoAccent.checked=true; els.transparent.checked=false; els.panelColor.value='#121212'; els.panelAlpha.value=72;
+      }
+      if (p==='card'){
+        els.layout.value='card'; els.theme.value='obsdark';
+        els.disc.value=200; els.bar.value=6; els.radius.value=14; els.blur.value=6;
+        els.compact.checked=false; els.spin.checked=true; els.labelStatic.checked=false; els.tonearm.checked=false;
+        els.showStatus.checked=true; els.showProgress.checked=true; els.showTime.checked=true; els.showTitle.checked=true; els.showArtist.checked=true; els.showNext.checked=false;
+        els.scroll.checked=true; els.autoAccent.checked=true; els.transparent.checked=false; els.panelColor.value='#18181b'; els.panelAlpha.value=72;
+      }
+      if (p==='bar'){
+        els.layout.value='bar'; els.theme.value='minimal';
+        els.disc.value=200; els.bar.value=4; els.radius.value=12; els.blur.value=2;
+        els.compact.checked=true; els.spin.checked=true; els.labelStatic.checked=false; els.tonearm.checked=false;
+        els.showStatus.checked=false; els.showProgress.checked=true; els.showTime.checked=false; els.showTitle.checked=true; els.showArtist.checked=true; els.showNext.checked=false;
+        els.scroll.checked=true; els.autoAccent.checked=false; els.transparent.checked=true;
+      }
+      if (p==='transparent'){
+        els.layout.value='record'; els.theme.value='spotify';
+        els.disc.value=180; els.bar.value=4; els.radius.value=0; els.blur.value=0;
+        els.compact.checked=true; els.spin.checked=true; els.labelStatic.checked=true; els.tonearm.checked=true;
+        els.showStatus.checked=false; els.showProgress.checked=true; els.showTime.checked=false; els.showTitle.checked=true; els.showArtist.checked=true; els.showNext.checked=false;
+        els.scroll.checked=true; els.autoAccent.checked=true; els.transparent.checked=true;
+      }
+      render();
+    });
+  });
+
   // persist between visits
-  const KEY = 'spotistream_builder_v1';
+  const KEY = 'spotistream_builder_v2';
   function saveState(){ localStorage.setItem(KEY, JSON.stringify(getState())); }
   function loadState(){
     try{
       const s = JSON.parse(localStorage.getItem(KEY)||'{}');
-      for (const k in s){ if (els[k] && 'value' in els[k]) els[k].value = s[k]; if (els[k] && 'checked' in els[k]) els[k].checked = !!s[k]; }
+      for (const k in s){
+        if (els[k] && 'value' in els[k]) els[k].value = s[k];
+        if (els[k] && 'checked' in els[k]) els[k].checked = !!s[k];
+      }
     }catch(e){}
   }
 
   function hexToRgb(hex){ const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); if(!m) return {r:0,g:0,b:0}; return {r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16)}; }
-  function enc(v){ return encodeURIComponent(v); }
 
   function getState(){
     return {
       base: els.base.value.trim(),
       layout: els.layout.value, theme: els.theme.value,
       disc: els.disc.value, bar: els.bar.value, radius: els.radius.value, blur: els.blur.value,
-      compact: els.compact.checked ? 1 : 0,
-      spin: els.spin.checked ? 1 : 0,
-      labelStatic: els.labelStatic.checked ? 1 : 0,
-      tonearm: els.tonearm.checked ? 1 : 0,
-      showStatus: els.showStatus.checked ? 1 : 0,
-      showProgress: els.showProgress.checked ? 1 : 0,
-      showTime: els.showTime.checked ? 1 : 0,
-      showTitle: els.showTitle.checked ? 1 : 0,
-      showArtist: els.showArtist.checked ? 1 : 0,
-      accent: els.accent.value, text: els.text.value, muted: els.muted.value,
-      font: els.font.value, shadow: els.shadow.value,
-      transparent: els.transparent.checked ? 1 : 0,
-      panelColor: els.panelColor.value, panelAlpha: els.panelAlpha.value
+      compact: +els.compact.checked, spin: +els.spin.checked, labelStatic: +els.labelStatic.checked, tonearm: +els.tonearm.checked,
+      showStatus: +els.showStatus.checked, showProgress: +els.showProgress.checked, showTime: +els.showTime.checked,
+      showTitle: +els.showTitle.checked, showArtist: +els.showArtist.checked, showNext: +els.showNext.checked,
+      scroll: +els.scroll.checked, autoAccent: +els.autoAccent.checked,
+      accent: els.accent.value, text: els.text.value, muted: els.muted.value, font: els.font.value, shadow: els.shadow.value,
+      transparent: +els.transparent.checked, panelColor: els.panelColor.value, panelAlpha: els.panelAlpha.value,
+      demo: +els.demo.checked
     };
   }
 
   function buildURL(){
     const s = getState();
-    let url = s.base || '';
-    if (!url) return '';
+    if (!s.base) return '';
     const q = new URLSearchParams();
 
     // Essentials
     if (s.layout && s.layout!=='record') q.set('layout', s.layout);
     if (s.theme) q.set('theme', s.theme);
 
-    // Sizes
+    // Sizes & visuals
     if (s.disc) q.set('disc', s.disc);
     if (s.bar) q.set('bar', s.bar);
     if (s.radius) q.set('radius', s.radius);
@@ -295,6 +353,11 @@
     if (!s.showTime) q.set('showtime','0');
     if (!s.showTitle) q.set('title','0');
     if (!s.showArtist) q.set('artist','0');
+    if (s.showNext) q.set('next','1'); // stacked only
+
+    // Text & motion
+    if (!s.scroll) q.set('scroll','0');
+    if (s.autoAccent) q.set('autoaccent','1'); else q.set('autoaccent','0');
 
     // Colors/fonts
     if (s.accent) q.set('accent', s.accent);
@@ -306,35 +369,43 @@
     // Background
     if (s.transparent){ q.set('transparent','1'); }
     else {
-      // panel rgba from color + alpha %
       const {r,g,b} = hexToRgb(s.panelColor);
       const a = Math.max(0, Math.min(100, parseInt(s.panelAlpha||'72',10)))/100;
       q.set('panel', `rgba(${r},${g},${b},${a})`);
     }
 
-    const sep = url.includes('?') ? '&' : '?';
-    return url + (q.toString() ? sep + q.toString() : '');
+    // Demo (preview helper)
+    if (s.demo) q.set('demo','1');
+
+    const sep = s.base.includes('?') ? '&' : '?';
+    return s.base + (q.toString() ? sep + q.toString() : '');
   }
 
   function render(){
+    // enable/disable Next toggle by layout
+    els.showNext.disabled = (els.layout.value !== 'stacked');
+
     const u = buildURL();
     els.url.textContent = u;
     els.preview.src = u;
     saveState();
   }
 
-  // Events
-  for (const id in els){
-    const n = els[id];
-    if (!n) continue;
-    if (n.tagName==='INPUT' || n.tagName==='SELECT' || n.tagName==='TEXTAREA'){
+  // events
+  for (const k in els){
+    const n=els[k]; if(!n) continue;
+    if (n.tagName==='INPUT' || n.tagName==='SELECT') {
       n.addEventListener('input', render);
       n.addEventListener('change', render);
     }
   }
-  els.copy.onclick = async ()=>{ try{ await navigator.clipboard.writeText(els.url.textContent); els.copy.textContent='Copied!'; setTimeout(()=>els.copy.textContent='Copy URL',1200);}catch(e){} };
-  els.open.onclick = ()=>{ if(els.url.textContent) window.open(els.url.textContent,'_blank'); };
-  els.reset.onclick = ()=>{ localStorage.removeItem(KEY); location.reload(); };
+  $('copy').onclick = async ()=>{ try{ await navigator.clipboard.writeText(els.url.textContent); $('copy').textContent='Copied!'; setTimeout(()=>$('copy').textContent='Copy URL',1200);}catch(e){} };
+  $('open').onclick = ()=>{ if(els.url.textContent) window.open(els.url.textContent,'_blank'); };
+  $('reset').onclick = ()=>{ localStorage.removeItem('spotistream_builder_v2'); location.reload(); };
+  $('transparentPreset').onclick = ()=>{
+    els.transparent.checked = true; els.blur.value = 0; els.radius.value = 0; els.shadow.value = '0';
+    render();
+  };
 
   loadState();
   render();
