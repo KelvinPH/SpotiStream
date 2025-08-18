@@ -14,20 +14,20 @@
     --disc: 200px; --bar-h: 6px; --gap: 22px; --max-w: 1100px; --pad:16px;
     --font: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
     --title-size: clamp(18px,2.8vw,24px); --artist-size: clamp(12px,2vw,15px);
-    --outline: 0px;      /* text outline thickness */
-    --marq-s: 18s;        /* marquee speed */
+    --outline: 0px;   /* text outline */
+    --marq-s: 18s;    /* marquee speed */
   }
   html,body{height:100%}
   body{margin:0; background:var(--bg); color:var(--text); font:600 14px/1.45 var(--font); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow:hidden;}
 
-  /* Panel / center */
+  /* Panel */
   .wrap{width:100%; height:100%; box-sizing:border-box; padding:var(--pad);
         display:flex; align-items:center; justify-content:center;
         backdrop-filter: blur(var(--blur)) saturate(120%);
         background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);}
   .inner{width:100%; max-width: var(--max-w); display:grid; gap: var(--gap); align-items:center;}
 
-  /* Layouts + media position */
+  /* Layouts + media placement */
   .layout-record.left  .inner{grid-template-columns: var(--disc) minmax(320px,1fr); grid-template-areas: "disc meta";}
   .layout-record.right .inner{grid-template-columns: minmax(320px,1fr) var(--disc); grid-template-areas: "meta disc";}
   .layout-card.left    .inner{grid-template-columns: var(--disc) minmax(320px,1fr); grid-template-areas: "art meta";}
@@ -85,6 +85,10 @@
   .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted)}
   .next{font-size:12px; color:var(--muted)}
 
+  /* Accent styles */
+  .accent-glow .dot{ box-shadow:0 0 12px var(--accent), 0 0 24px var(--accent); }
+  .accent-gradient .bar{ background: linear-gradient(90deg, var(--accent), rgba(255,255,255,0.9)); }
+
   /* Marquee */
   .marquee{ position:relative; overflow:hidden; }
   .marquee span{ display:inline-block; padding-right:60px; will-change:transform; animation:marquee var(--marq-s) linear infinite; }
@@ -101,11 +105,7 @@
   .compact .title{--title-size: clamp(16px,2.2vw,20px)}
   .compact .artist{--artist-size: clamp(11px,1.7vw,13px)}
 
-  /* small widths */
   @media (max-width:560px){ :root{--disc:150px} .tonearm{display:none} }
-
-  /* tiny debug flag (optional) */
-  #dbg{position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.6); padding:6px 8px; font:12px/1.3 ui-monospace,Consolas,monospace; color:#cfe7ff; border-radius:8px}
 </style>
 </head>
 <body>
@@ -134,11 +134,11 @@
   </div>
 
 <script>
-  /* ===== utilities ===== */
   const p = new URLSearchParams(location.search);
   const $ = id => document.getElementById(id);
   const root = document.documentElement.style;
 
+  /* Themes */
   const THEMES = {
     spotify:{panel:'rgba(18,18,18,0.72)',text:'#eaeaea',muted:'#b6bcc4',accent:'#1db954',radius:16,blur:8},
     obsdark:{panel:'rgba(24,24,27,0.72)',text:'#e6e7ea',muted:'#9da3ad',accent:'#22d3ee',radius:14,blur:6},
@@ -162,6 +162,7 @@
     poppins:'https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap',
     firasans:'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600;800&display=swap'
   };
+
   const getBool=(key,def=true)=>{ const v=p.get(key); if(v===null) return def; return !(v==='0'||v==='false'||v==='off'); };
   const applyVars=v=>{ if(!v) return;
     if(v.panel)root.setProperty('--panel',v.panel); if(v.text)root.setProperty('--text',v.text);
@@ -178,7 +179,6 @@
   document.body.className=`layout-${layout} ${align}`;
   applyVars(THEMES[(p.get('theme')||'spotify').toLowerCase()]);
 
-  // media elements
   const discEl=$('disc'), artbox=$('artbox'), tonearm=$('tonearm');
   if(layout==='card'){ discEl.style.display='none'; artbox.classList.remove('hidden'); }
   if(layout!=='record'){ tonearm.style.display='none'; }
@@ -205,7 +205,12 @@
   }
   applyFont(p.get('font'));
 
-  // element toggles
+  /* Accent style */
+  const astyle=(p.get('accentstyle')||'solid').toLowerCase();
+  if(astyle==='glow') document.body.classList.add('accent-glow');
+  else if(astyle==='gradient') document.body.classList.add('accent-gradient');
+
+  /* Element toggles */
   const show=(id,flag)=>{ const n=$(id); if(!n) return; n.style.display = flag ? '' : 'none'; };
   show('statusRow', getBool('showstatus',true));
   show('progress',  getBool('showprogress',true));
@@ -232,7 +237,8 @@
   let accessToken=null, refreshToken=null, expiresAt=0;
   let playing=false, progressMs=0, durationMs=0;
 
-  const K={clientId:'obs_spotify_client_id',verifier:'obs_spotify_code_verifier',access:'obs_spotify_access_token',refresh:'obs_spotify_refresh_token',expires:'obs_spotify_expires_at'};
+  const K={clientId:'obs_spotify_client_id',verifier:'obs_spotify_code_verifier',
+           access:'obs_spotify_access_token',refresh:'obs_spotify_refresh_token',expires:'obs_spotify_expires_at'};
 
   async function sha256(str){ const buf=new TextEncoder().encode(str); const d=await crypto.subtle.digest('SHA-256',buf); return new Uint8Array(d); }
   function base64url(bytes){ return btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
@@ -284,7 +290,7 @@
     requestAnimationFrame(()=>{ if(el.scrollWidth>el.clientWidth+8){ el.classList.add('marquee'); el.innerHTML=''; const s1=document.createElement('span'); s1.textContent=text+'   •   '; const s2=s1.cloneNode(true); el.appendChild(s1); el.appendChild(s2);} });
   }
   function autoAccentFromImage(url){
-    if(!autoAccent) return;
+    if(!getBool('autoaccent',false)) return;
     try{
       const img=new Image(); img.crossOrigin='anonymous';
       img.onload=()=>{ const c=document.createElement('canvas'), ctx=c.getContext('2d'); const w=48,h=48; c.width=w; c.height=h; ctx.drawImage(img,0,0,w,h);
@@ -300,31 +306,38 @@
     setStatus('Paused'); durationMs=progressMs=0; setProgress(0); discEl.classList.remove('spin');
     $('labelImg').style.backgroundImage=''; artbox.style.backgroundImage=''; $('nextRow').classList.add('hidden');
   }
-  function setProgress(p){ const c=Math.max(0,Math.min(1,p)); barEl.style.inset=`0 ${(1-c)*100}% 0 0`; elapsedEl.textContent=msToClock(progressMs); durationEl.textContent=msToClock(durationMs); }
   function renderTrack(payload){
     const item=payload?.item; if(!item){ renderNothing(); return; }
     const img=(item.album?.images?.[0]?.url)||(item.album?.images?.[1]?.url)||(item.album?.images?.[2]?.url)||'';
-    if(img){ labelDiv.style.backgroundImage=`url('${img}')`; artbox.style.backgroundImage=`url('${img}')`; autoAccentFromImage(img); }
+    if(img){ $('labelImg').style.backgroundImage=`url('${img}')`; artbox.style.backgroundImage=`url('${img}')`; autoAccentFromImage(img); }
     const artists=(item.artists||[]).map(a=>a.name).join(', ');
-    setMarquee(titleEl, item.name||'Untitled', true && scrollOn);
-    setMarquee(artistEl, artists||'Unknown artist', true && scrollOn);
+    setMarquee($('title'), item.name||'Untitled', getBool('scroll',true));
+    setMarquee($('artist'), artists||'Unknown artist', getBool('scroll',true));
     playing=!!payload.is_playing; setStatus(playing?'Playing':'Paused');
-    discEl.classList.toggle('spin', playing && spinOn);
+    discEl.classList.toggle('spin', playing && getBool('spin',true));
     durationMs=item.duration_ms||0; progressMs=payload.progress_ms||0; setProgress(durationMs?progressMs/durationMs:0);
   }
   async function renderNext(){
-    const nextParam=p.get('next'); const want=(nextParam==='1')||(nextParam===null && (document.body.classList.contains('layout-stacked')));
+    const nextParam=p.get('next'); const want=(nextParam==='1')||(nextParam===null && document.body.classList.contains('layout-stacked'));
     if(!want) return;
     const q=await getQueue(); const nx=q?.queue?.[0];
     if(nx){ const a=(nx.artists||[]).map(x=>x.name).join(', '); $('nextRow').textContent=`Next: ${nx.name||'Unknown'} — ${a||''}`; $('nextRow').classList.remove('hidden'); }
   }
 
+  /* Setup + demo */
+  const SCOPES=['user-read-playback-state','user-read-currently-playing'];
+  const TOKEN_URL='https://accounts.spotify.com/api/token';
+  const AUTH_URL='https://accounts.spotify.com/authorize';
+  const REDIRECT_URI=window.location.origin+window.location.pathname;
+
   function initSetup(){
     const id=$('clientId'), save=$('save'), conn=$('connect');
-    id.value=localStorage.getItem(K.clientId)||'';
-    save.onclick=()=>{ const v=id.value.trim(); if(!v) return alert('Please paste your Spotify Client ID'); localStorage.setItem(K.clientId,v); alert('Saved! Now click Connect to Spotify.'); };
-    conn.onclick=async()=>{ const cid=localStorage.getItem(K.clientId); if(!cid) return alert('Save your Client ID first.');
-      const verifier=randString(64); const challenge=await sha256(verifier).then(buf=>base64url(buf)); localStorage.setItem(K.verifier,verifier);
+    id.value=localStorage.getItem('obs_spotify_client_id')||'';
+    save.onclick=()=>{ const v=id.value.trim(); if(!v) return alert('Please paste your Spotify Client ID'); localStorage.setItem('obs_spotify_client_id',v); alert('Saved! Now click Connect to Spotify.'); };
+    conn.onclick=async()=>{ const cid=localStorage.getItem('obs_spotify_client_id'); if(!cid) return alert('Save your Client ID first.');
+      const verifier=(function(n=64){ const a=new Uint8Array(n); crypto.getRandomValues(a); return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'').slice(0,n); })();
+      const challenge=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(buf=>btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''));
+      localStorage.setItem('obs_spotify_code_verifier',verifier);
       const a=new URL(AUTH_URL); a.searchParams.set('response_type','code'); a.searchParams.set('client_id',cid);
       a.searchParams.set('redirect_uri',REDIRECT_URI); a.searchParams.set('scope',SCOPES.join(' '));
       a.searchParams.set('code_challenge_method','S256'); a.searchParams.set('code_challenge',challenge);
@@ -332,7 +345,6 @@
     };
   }
 
-  /* Demo mode (for configurator preview) */
   const demo=getBool('demo',false);
   function startDemo(){
     showSetup(false);
@@ -342,21 +354,60 @@
     setInterval(()=>{ playing=true; progressMs+=250; if(progressMs>durationMs) progressMs=0; setProgress(progressMs/durationMs); },250);
   }
 
-  // optional debug flag
-  if(getBool('debug',false)){
-    const d=document.createElement('div'); d.id='dbg';
-    d.textContent=`theme=${p.get('theme')||'spotify'} | params OK`;
-    document.body.appendChild(d);
-  }
+  function showSetup(b){ $('setup').classList.toggle('hidden',!b); }
 
   (async function main(){
     initSetup();
     if(demo){ startDemo(); return; }
 
+    // OAuth token handling (same as previous)
+    async function exchangeIfCode(){
+      const url=new URL(location.href); const code=url.searchParams.get('code'); if(!code) return;
+      const cid=localStorage.getItem('obs_spotify_client_id'); const verifier=localStorage.getItem('obs_spotify_code_verifier');
+      const body=new URLSearchParams({client_id:cid,grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,code_verifier:verifier});
+      try{
+        const res=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+        const tok=await res.json();
+        if(tok.access_token){ localStorage.setItem('obs_spotify_access_token',tok.access_token); }
+        if(tok.refresh_token){ localStorage.setItem('obs_spotify_refresh_token',tok.refresh_token); }
+        if(tok.expires_in){ localStorage.setItem('obs_spotify_expires_at', String(Date.now()+tok.expires_in*1000-10000)); }
+        history.replaceState({},'',REDIRECT_URI);
+      }catch(e){ console.error(e); }
+    }
+    await exchangeIfCode();
+
+    async function ensureToken(){
+      const cid=localStorage.getItem('obs_spotify_client_id');
+      const access=localStorage.getItem('obs_spotify_access_token');
+      const refresh=localStorage.getItem('obs_spotify_refresh_token');
+      const exp=parseInt(localStorage.getItem('obs_spotify_expires_at')||'0',10);
+      if(!cid){ showSetup(true); return false; }
+      if(!access && !refresh){ showSetup(true); return false; }
+      if(Date.now()>exp && refresh){
+        const body=new URLSearchParams({client_id:cid,grant_type:'refresh_token',refresh_token:refresh});
+        try{
+          const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+          const t=await r.json();
+          if(t.access_token) localStorage.setItem('obs_spotify_access_token',t.access_token);
+          if(t.refresh_token) localStorage.setItem('obs_spotify_refresh_token',t.refresh_token);
+          if(t.expires_in)    localStorage.setItem('obs_spotify_expires_at', String(Date.now()+t.expires_in*1000-10000));
+        }catch(e){ console.error(e); }
+      }
+      return true;
+    }
+
     const ok=await ensureToken(); showSetup(!ok);
-    setInterval(async()=>{ const data=await getCurrentlyPlaying(); if(!data){ renderNothing(); return; } renderTrack(data); },3000);
+    setInterval(async()=>{ const token=localStorage.getItem('obs_spotify_access_token'); if(!token){ renderNothing(); return; }
+      try{
+        const res=await fetch('https://api.spotify.com/v1/me/player/currently-playing',{headers:{Authorization:`Bearer ${token}`}});
+        if(res.status===204){ renderNothing(); return; }
+        if(!res.ok){ if(res.status===401){ /* will refresh on next tick */ } return; }
+        const data=await res.json(); renderTrack(data);
+      }catch(e){ console.error(e); }
+    },3000);
+
     setInterval(()=>{ if(playing && durationMs>0){ progressMs+=250; if(progressMs>durationMs) progressMs=durationMs; setProgress(progressMs/durationMs); } },250);
-    await renderNext(); setInterval(renderNext,15000);
+    if(showNext){ try{ const token=localStorage.getItem('obs_spotify_access_token'); if(token){ const q=await fetch('https://api.spotify.com/v1/me/player/queue',{headers:{Authorization:`Bearer ${token}`}}).then(r=>r.json()); const nx=q?.queue?.[0]; if(nx){ const a=(nx.artists||[]).map(x=>x.name).join(', '); $('nextRow').textContent=`Next: ${nx.name||'Unknown'} — ${a||''}`; $('nextRow').classList.remove('hidden'); } } }catch(e){} }
   })();
 </script>
 </body>
