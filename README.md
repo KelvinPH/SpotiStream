@@ -2,7 +2,7 @@
 
 [![Works in](https://img.shields.io/badge/OBS-Browser%20Source-6aa84f)](#-obs-setup)
 [![Hosting](https://img.shields.io/badge/Hosting-GitHub%20Pages-1da1f2)](#-self-hosting--forks)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 
 The **most customizable Spotify overlay** for streamers and content creators. Features a stunning vinyl record aesthetic with deep customization options, multiple layouts, visual effects, and professional themes. No server required, no secrets exposed.
 
@@ -270,37 +270,6 @@ All configurator settings can be controlled via URL parameters:
 - Personal information or email
 - Listening history or recommendations
 - Account details beyond current playback
-
----
-
-## 🛠️ Development & Contributing
-
-### **Self-Hosting**
-1. Fork this repository
-2. Enable GitHub Pages in Settings
-3. Update redirect URI to your GitHub Pages URL
-4. Customize as needed
-
-### **Local Development**
-```bash
-git clone https://github.com/yourusername/SpotiStream
-cd SpotiStream
-# Serve locally (any static server works)
-python -m http.server 8000
-# Open http://localhost:8000/config.html
-```
-
-### **Contributing**
-- 🐛 **Bug Reports** - Use GitHub Issues
-- ✨ **Feature Requests** - Describe your use case
-- 🔧 **Pull Requests** - Follow existing code style
-- 🎨 **New Themes** - Add to THEMES object with PR
-
----
-
-## 📄 License
-
-MIT License - Feel free to use, modify, and distribute.
 
 ---
 
