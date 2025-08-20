@@ -527,7 +527,7 @@ function initSetup(){
 const demo=getBool('demo',false);
 function startDemo(){
   showSetup(false);
-  const demoImg='https://i.scdn.co/image/ab67616d0000b273d4c3de2d8d1a6ca5b9e3b123';
+  const demoImg='assets/@demo-albumcover.jpg';
   const payload={ item:{ name:'Midnight Drive (Demo)', artists:[{name:'Lumen & Co'}], duration_ms:212000, album:{images:[{url:demoImg}] } }, is_playing:true, progress_ms:42000 };
   renderTrack(payload);
   setInterval(()=>{ playing=true; progressMs+=250; if(progressMs>durationMs) progressMs=0; setProgress(progressMs/durationMs); },250);
