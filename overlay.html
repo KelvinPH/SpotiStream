@@ -16,6 +16,8 @@
     --title-size: clamp(18px,2.8vw,24px); --artist-size: clamp(12px,2vw,15px);
     --outline: 0px;   /* text outline */
     --marq-s: 18s;    /* marquee speed */
+    --progress-width: 100%;  /* progress bar width */
+    --text-align: left;      /* text alignment */
   }
   html,body{height:100%}
   body{margin:0; background:var(--bg); color:var(--text); font:600 14px/1.45 var(--font); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; overflow:hidden;}
@@ -80,9 +82,19 @@
   .row{display:flex; align-items:center; gap:8px}
   .pill{display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px}
   .dot{width:6px; height:6px; border-radius:999px; background:var(--accent); box-shadow:0 0 8px var(--accent)}
-  .progress{height:var(--bar-h); border-radius:999px; position:relative; overflow:hidden; background: rgba(255,255,255,0.18)}
+  .progress{height:var(--bar-h); border-radius:999px; position:relative; overflow:hidden; background: rgba(255,255,255,0.18); width: var(--progress-width)}
   .bar{position:absolute; inset:0 100% 0 0; border-radius:999px; background: var(--accent)}
-  .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted)}
+  .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted); width: var(--progress-width)}
+  
+  /* Text alignment classes */
+  .text-left .meta { text-align: left; align-items: flex-start; }
+  .text-left .progress, .text-left .time { margin-left: 0; margin-right: auto; }
+  
+  .text-center .meta { text-align: center; align-items: center; }
+  .text-center .progress, .text-center .time { margin: 0 auto; }
+  
+  .text-right .meta { text-align: right; align-items: flex-end; }
+  .text-right .progress, .text-right .time { margin-left: auto; margin-right: 0; }
   .next{font-size:12px; color:var(--muted)}
 
   /* Accent styles */
@@ -193,6 +205,7 @@ if(p.get('pad'))    root.setProperty('--pad', p.get('pad')+'px');
 if(p.get('shadow')==='0') root.setProperty('--shadow','none');
 if(p.get('outline')) root.setProperty('--outline', p.get('outline')+'px');
 if(p.get('marq'))    root.setProperty('--marq-s', p.get('marq')+'s');
+if(p.get('progresswidth')) root.setProperty('--progress-width', p.get('progresswidth')+'%');
 
 if(getBool('compact',false)) $('card').classList.add('compact');
 if((p.get('label')||'')==='static') discEl.classList.add('label-static');
@@ -203,6 +216,26 @@ if(getBool('transparent',false)){
   root.setProperty('--blur','0px'); root.setProperty('--shadow','none'); root.setProperty('--radius','0px');
 }
 applyFont(p.get('font'));
+
+/* text alignment */
+const textAlign = p.get('textalign') || 'auto';
+const mediaAlign = align; // 'left' or 'right'
+
+if (textAlign === 'auto') {
+  // Auto mode: intelligent alignment based on layout and media position
+  if (layout === 'stacked') {
+    document.body.classList.add('text-center');
+  } else if (layout === 'bar') {
+    document.body.classList.add('text-left'); // bar layout always left
+  } else if (mediaAlign === 'right') {
+    document.body.classList.add('text-left'); // text left when media is right
+  } else {
+    document.body.classList.add('text-left'); // default left alignment
+  }
+} else {
+  // Manual alignment override
+  document.body.classList.add(`text-${textAlign}`);
+}
 
 /* accent style */
 const astyle=(p.get('accentstyle')||'solid').toLowerCase();

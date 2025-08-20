@@ -120,6 +120,22 @@
         </div>
         <div class="grid cols-2">
           <div>
+            <label>Progress width (%)</label>
+            <input id="progressWidth" type="range" min="50" max="100" step="5" value="100" oninput="progWidthOut.textContent=this.value"/>
+            <div class="badge">Current: <span id="progWidthOut">100</span>%</div>
+          </div>
+          <div>
+            <label>Text alignment</label>
+            <select id="textAlign">
+              <option value="auto">Auto (follows media)</option>
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid cols-2">
+          <div>
             <label>Corner radius (px)</label>
             <input id="radius" type="range" min="0" max="24" step="1" value="16" oninput="radOut.textContent=this.value"/>
             <div class="badge">Current: <span id="radOut">16</span> px</div>
@@ -268,6 +284,7 @@
     scroll:$('scroll'), marq:$('marq'), autoAccent:$('autoAccent'),
     colorMode:$('colorMode'), accent:$('accent'), text:$('text'), muted:$('muted'), font:$('font'), shadow:$('shadow'),
     transparent:$('transparent'), panelColor:$('panelColor'), panelAlpha:$('panelAlpha'),
+    progressWidth:$('progressWidth'), textAlign:$('textAlign'),
     demo:$('demo'), transparentPreset:$('transparentPreset'),
     url:$('url'), copy:$('copy'), open:$('open'), reset:$('reset'), preview:$('preview'),
     colorsBlock:$('colorsBlock')
@@ -282,11 +299,11 @@
   document.querySelectorAll('[data-preset]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const p = btn.dataset.preset;
-      if(p==='record'){ setState({layout:'record',align:'left',theme:'spotify',accentstyle:'solid',disc:200,bar:6,radius:16,blur:8,pad:16,outline:0,compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:18,autoAccent:0,colorMode:'theme',transparent:0,panelColor:'#121212',panelAlpha:72}); }
-      if(p==='card'){ setState({layout:'card',align:'left',theme:'obsdark',accentstyle:'solid',disc:220,bar:6,radius:14,blur:6,pad:16,outline:0,compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:16,autoAccent:0,colorMode:'theme',transparent:0,panelColor:'#18181b',panelAlpha:72}); }
-      if(p==='bar'){ setState({layout:'bar',align:'left',theme:'minimal',accentstyle:'solid',disc:200,bar:4,radius:12,blur:2,pad:10,outline:0,compact:1,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:0,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:14,autoAccent:0,colorMode:'theme',transparent:1}); }
-      if(p==='stacked'){ setState({layout:'stacked',align:'left',theme:'oldradio',accentstyle:'glow',disc:220,bar:6,radius:12,blur:3,pad:16,outline:0,compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:1,scroll:1,marq:18,autoAccent:0,colorMode:'theme',transparent:0}); }
-      if(p==='transparent'){ setState({layout:'record',align:'left',theme:'spotify',accentstyle:'glow',disc:180,bar:4,radius:0,blur:0,pad:0,outline:1,compact:1,spin:1,labelStatic:1,tonearm:1,showStatus:0,showProgress:1,showTime:0,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:16,autoAccent:0,colorMode:'theme',transparent:1}); }
+      if(p==='record'){ setState({layout:'record',align:'left',theme:'spotify',accentstyle:'solid',disc:200,bar:6,radius:16,blur:8,pad:16,outline:0,compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:18,autoAccent:0,colorMode:'theme',transparent:0,panelColor:'#121212',panelAlpha:72,progressWidth:100,textAlign:'auto'}); }
+      if(p==='card'){ setState({layout:'card',align:'left',theme:'obsdark',accentstyle:'solid',disc:220,bar:6,radius:14,blur:6,pad:16,outline:0,compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:16,autoAccent:0,colorMode:'theme',transparent:0,panelColor:'#18181b',panelAlpha:72,progressWidth:100,textAlign:'auto'}); }
+      if(p==='bar'){ setState({layout:'bar',align:'left',theme:'minimal',accentstyle:'solid',disc:200,bar:4,radius:12,blur:2,pad:10,outline:0,compact:1,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:0,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:14,autoAccent:0,colorMode:'theme',transparent:1,progressWidth:100,textAlign:'auto'}); }
+      if(p==='stacked'){ setState({layout:'stacked',align:'left',theme:'oldradio',accentstyle:'glow',disc:220,bar:6,radius:12,blur:3,pad:16,outline:0,compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:1,scroll:1,marq:18,autoAccent:0,colorMode:'theme',transparent:0,progressWidth:100,textAlign:'center'}); }
+      if(p==='transparent'){ setState({layout:'record',align:'left',theme:'spotify',accentstyle:'glow',disc:180,bar:4,radius:0,blur:0,pad:0,outline:1,compact:1,spin:1,labelStatic:1,tonearm:1,showStatus:0,showProgress:1,showTime:0,showTitle:1,showArtist:1,showNext:0,scroll:1,marq:16,autoAccent:0,colorMode:'theme',transparent:1,progressWidth:100,textAlign:'auto'}); }
     });
   });
 
@@ -314,6 +331,7 @@
       scroll:+els.scroll.checked, marq:els.marq.value, autoAccent:+els.autoAccent.checked,
       colorMode:els.colorMode.value, accent:els.accent.value, text:els.text.value, muted:els.muted.value, font:els.font.value, shadow:els.shadow.value,
       transparent:+els.transparent.checked, panelColor:els.panelColor.value, panelAlpha:els.panelAlpha.value,
+      progressWidth:els.progressWidth.value, textAlign:els.textAlign.value,
       demo:+els.demo.checked
     };
   }
@@ -354,6 +372,10 @@
     if(!s.scroll) q.set('scroll','0');
     if(s.autoAccent) q.set('autoaccent','1'); // default OFF
 
+    // progress & text alignment
+    if(s.progressWidth && s.progressWidth!=='100') q.set('progresswidth', s.progressWidth);
+    if(s.textAlign && s.textAlign!=='auto') q.set('textalign', s.textAlign);
+
     // colors/fonts
     if(s.colorMode==='custom'){ // only send when user really wants custom colors
       if(s.accent) q.set('accent', s.accent);
@@ -370,7 +392,6 @@
       q.set('panel', `rgba(${r},${g},${b},${a})`);
     }
 
-    if(s.demo) q.set('demo','1');
 
     const sep = s.base.includes('?') ? '&' : '?';
     return s.base + (q.toString() ? sep + q.toString() : '');
