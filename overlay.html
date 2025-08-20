@@ -89,12 +89,15 @@
   /* Text alignment classes */
   .text-left .meta { text-align: left; align-items: flex-start; }
   .text-left .progress, .text-left .time { margin-left: 0; margin-right: auto; }
+  .text-left .row { justify-content: flex-start; }
   
   .text-center .meta { text-align: center; align-items: center; }
   .text-center .progress, .text-center .time { margin: 0 auto; }
+  .text-center .row { justify-content: center; }
   
   .text-right .meta { text-align: right; align-items: flex-end; }
   .text-right .progress, .text-right .time { margin-left: auto; margin-right: 0; }
+  .text-right .row { justify-content: flex-end; }
   .next{font-size:12px; color:var(--muted)}
 
   /* Accent styles */
@@ -222,15 +225,15 @@ const textAlign = p.get('textalign') || 'auto';
 const mediaAlign = align; // 'left' or 'right'
 
 if (textAlign === 'auto') {
-  // Auto mode: intelligent alignment based on layout and media position
+  // Auto mode: text alignment follows media position for visual balance
   if (layout === 'stacked') {
     document.body.classList.add('text-center');
   } else if (layout === 'bar') {
     document.body.classList.add('text-left'); // bar layout always left
   } else if (mediaAlign === 'right') {
-    document.body.classList.add('text-left'); // text left when media is right
+    document.body.classList.add('text-right'); // text follows media to right
   } else {
-    document.body.classList.add('text-left'); // default left alignment
+    document.body.classList.add('text-left'); // text follows media to left
   }
 } else {
   // Manual alignment override

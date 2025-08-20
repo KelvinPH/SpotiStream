@@ -4,40 +4,353 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>SpotiStream Configurator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#0f1115; --panel:#151822; --muted:#9aa4b2; --text:#e8ecf3; --radius:14px; }
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0; background:linear-gradient(180deg,#0f1115,#0b0d12); color:var(--text); font:500 14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
-  .app{display:grid; grid-template-columns: 450px 1fr; gap:18px; height:100%; padding:18px}
-  .card{background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,0.35);}
-  .left{display:grid; grid-auto-rows:min-content; gap:12px; overflow:auto; padding-right:4px}
-  .section{padding:14px 16px; display:grid; gap:12px}
-  .section h3{margin:0 0 4px 0; font-size:13px; letter-spacing:0.4px; color:#9aa4b2; text-transform:uppercase}
-  .grid{display:grid; gap:10px} .grid.cols-2{grid-template-columns: 1fr 1fr}
-  label{font-size:12px; color:#bfc6d4}
-  input[type="text"], input[type="url"], select{width:100%; padding:10px 12px; border-radius:10px; background:#10131b; color:#e8ecf3; border:1px solid rgba(255,255,255,0.12);}
-  input[type="range"]{width:100%}
-  .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
-  .check{display:flex; align-items:center; gap:8px}
-  .sw{appearance:none; width:40px; height:22px; background:#2a2f3b; border-radius:999px; position:relative; outline:none; cursor:pointer}
-  .sw:checked{background:#22d3ee}
-  .sw::after{content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:.18s}
-  .sw:checked::after{left:21px}
-  .color-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .color-row input[type="color"]{width:36px; height:36px; border:0; padding:0; border-radius:8px; background:#10131b}
-  .btn{appearance:none; border:0; background:#22d3ee; color:#001018; font-weight:800; padding:10px 14px; border-radius:12px; cursor:pointer}
-  .btn.secondary{background:#1db954; color:#00130a}
-  .btn.ghost{background:transparent; color:#cdd6e5; border:1px solid rgba(255,255,255,0.18)}
-  .btn.small{padding:8px 10px; font-weight:700}
-  .chips{display:flex; gap:8px; flex-wrap:wrap}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; background:#0c0f15; border:1px solid rgba(255,255,255,0.12); padding:8px 10px; border-radius:10px; color:#dbe3f3; overflow:auto}
-  .right{display:grid; grid-template-rows:auto 1fr; gap:12px}
-  .preview-bar{display:flex; align-items:center; justify-content:space-between; padding:12px 14px}
-  .preview-wrap{padding:6px 10px 14px 10px; height:100%}
-  iframe{width:100%; height:100%; border:0; border-radius:12px; background:#0c0f15}
-  .badge{font-size:12px; color:#93a2b8}
-  .muted{opacity:.5; pointer-events:none; filter:grayscale(1)}
-  @media (max-width: 980px){ .app{grid-template-columns: 1fr; grid-template-rows: auto 60vh} }
+  :root{ 
+    --bg: #0a0b0f; 
+    --bg-secondary: #0f1117; 
+    --panel: #141822; 
+    --panel-hover: #1a1f2e;
+    --border: rgba(255,255,255,0.06); 
+    --border-hover: rgba(255,255,255,0.12);
+    --muted: #6b7280; 
+    --text: #f8fafc; 
+    --text-secondary: #cbd5e1;
+    --accent: #3b82f6; 
+    --accent-hover: #2563eb;
+    --success: #10b981;
+    --radius: 16px; 
+    --radius-sm: 12px;
+    --shadow: 0 20px 25px -5px rgba(0,0,0,0.4), 0 10px 10px -5px rgba(0,0,0,0.2);
+    --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.3);
+  }
+  
+  *{box-sizing:border-box} 
+  html,body{height:100%; margin:0; padding:0}
+  
+  body{
+    background: radial-gradient(ellipse at top, var(--bg-secondary) 0%, var(--bg) 100%);
+    color: var(--text); 
+    font: 500 15px/1.6 'Inter', system-ui, -apple-system, sans-serif; 
+    -webkit-font-smoothing: antialiased; 
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  
+  .app{
+    display: grid; 
+    grid-template-columns: 480px 1fr; 
+    gap: 24px; 
+    height: 100vh; 
+    padding: 24px;
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+  
+  .card{
+    background: var(--panel); 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius); 
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    transition: all 0.2s ease;
+  }
+  
+  .card:hover{
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+  }
+  
+  .left{
+    display: grid; 
+    grid-auto-rows: min-content; 
+    gap: 20px; 
+    overflow-y: auto; 
+    overflow-x: hidden;
+    padding-right: 8px;
+  }
+  
+  .left::-webkit-scrollbar{width: 6px}
+  .left::-webkit-scrollbar-track{background: transparent}
+  .left::-webkit-scrollbar-thumb{background: var(--border-hover); border-radius: 3px}
+  .left::-webkit-scrollbar-thumb:hover{background: var(--muted)}
+  
+  .section{
+    padding: 24px; 
+    display: grid; 
+    gap: 20px;
+  }
+  
+  .section h3{
+    margin: 0; 
+    font-size: 14px; 
+    font-weight: 600;
+    letter-spacing: 0.025em; 
+    color: var(--text-secondary); 
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .section h3::before{
+    content: '';
+    width: 4px;
+    height: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--success));
+    border-radius: 2px;
+  }
+  
+  .grid{display: grid; gap: 16px} 
+  .grid.cols-2{grid-template-columns: 1fr 1fr}
+  
+  label{
+    font-size: 13px; 
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    display: block;
+  }
+  
+  input[type="text"], input[type="url"], select{
+    width: 100%; 
+    padding: 12px 16px; 
+    border-radius: var(--radius-sm); 
+    background: var(--bg-secondary); 
+    color: var(--text); 
+    border: 1px solid var(--border);
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  
+  input[type="text"]:focus, input[type="url"]:focus, select:focus{
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  input[type="range"]{
+    width: 100%;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb:hover{
+    background: var(--accent-hover);
+    transform: scale(1.1);
+  }
+  
+  .row{
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 12px;
+    padding: 8px 0;
+  }
+  
+  .check{
+    display: flex; 
+    align-items: center; 
+    gap: 12px;
+    padding: 8px 0;
+  }
+  
+  .sw{
+    appearance: none; 
+    width: 48px; 
+    height: 24px; 
+    background: var(--bg-secondary); 
+    border: 1px solid var(--border);
+    border-radius: 12px; 
+    position: relative; 
+    outline: none; 
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .sw:checked{
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  
+  .sw::after{
+    content: ""; 
+    position: absolute; 
+    top: 2px; 
+    left: 2px; 
+    width: 18px; 
+    height: 18px; 
+    border-radius: 50%; 
+    background: #fff; 
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .sw:checked::after{left: 26px}
+  
+  .color-row{
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+    flex-wrap: wrap;
+  }
+  
+  .color-row input[type="color"]{
+    width: 44px; 
+    height: 44px; 
+    border: 2px solid var(--border); 
+    padding: 0; 
+    border-radius: var(--radius-sm); 
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .color-row input[type="color"]:hover{
+    border-color: var(--border-hover);
+    transform: scale(1.05);
+  }
+  
+  .btn{
+    appearance: none; 
+    border: 0; 
+    background: var(--accent); 
+    color: white; 
+    font-weight: 600; 
+    padding: 12px 20px; 
+    border-radius: var(--radius-sm); 
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .btn:hover{
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn.secondary{
+    background: var(--success); 
+    color: white;
+  }
+  
+  .btn.secondary:hover{
+    background: #059669;
+  }
+  
+  .btn.ghost{
+    background: transparent; 
+    color: var(--text-secondary); 
+    border: 1px solid var(--border);
+  }
+  
+  .btn.ghost:hover{
+    background: var(--panel-hover);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+  
+  .btn.small{
+    padding: 8px 12px; 
+    font-size: 13px;
+  }
+  
+  .chips{
+    display: flex; 
+    gap: 10px; 
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  
+  .mono{
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; 
+    background: var(--bg-secondary); 
+    border: 1px solid var(--border); 
+    padding: 16px; 
+    border-radius: var(--radius-sm); 
+    color: var(--text); 
+    overflow: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  
+  .right{
+    display: grid; 
+    grid-template-rows: auto 1fr; 
+    gap: 20px;
+  }
+  
+  .preview-bar{
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 20px 24px;
+  }
+  
+  .preview-wrap{
+    padding: 8px 16px 20px 16px; 
+    height: 100%;
+  }
+  
+  iframe{
+    width: 100%; 
+    height: 100%; 
+    border: 0; 
+    border-radius: var(--radius-sm); 
+    background: var(--bg-secondary);
+  }
+  
+  .badge{
+    font-size: 13px; 
+    color: var(--muted);
+    font-weight: 500;
+  }
+  
+  .range-display{
+    background: var(--bg-secondary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 60px;
+    text-align: center;
+  }
+  
+  .muted{
+    opacity: 0.4; 
+    pointer-events: none; 
+    filter: grayscale(1);
+  }
+  
+  @media (max-width: 1200px){ 
+    .app{
+      grid-template-columns: 1fr; 
+      grid-template-rows: auto 60vh;
+      gap: 20px;
+      padding: 16px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -108,21 +421,27 @@
         </div>
         <div class="grid cols-2">
           <div>
-            <label>Disc / Cover size (px)</label>
-            <input id="disc" type="range" min="120" max="360" step="2" value="200" oninput="discOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="discOut">200</span> px</div>
+            <label>Disc / Cover size</label>
+            <div class="row">
+              <input id="disc" type="range" min="120" max="360" step="2" value="200" oninput="discOut.textContent=this.value"/>
+              <div class="range-display"><span id="discOut">200</span>px</div>
+            </div>
           </div>
           <div>
-            <label>Progress height (px)</label>
-            <input id="bar" type="range" min="0" max="16" step="1" value="6" oninput="barOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="barOut">6</span> px</div>
+            <label>Progress height</label>
+            <div class="row">
+              <input id="bar" type="range" min="0" max="16" step="1" value="6" oninput="barOut.textContent=this.value"/>
+              <div class="range-display"><span id="barOut">6</span>px</div>
+            </div>
           </div>
         </div>
         <div class="grid cols-2">
           <div>
-            <label>Progress width (%)</label>
-            <input id="progressWidth" type="range" min="50" max="100" step="5" value="100" oninput="progWidthOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="progWidthOut">100</span>%</div>
+            <label>Progress width</label>
+            <div class="row">
+              <input id="progressWidth" type="range" min="50" max="100" step="5" value="100" oninput="progWidthOut.textContent=this.value"/>
+              <div class="range-display"><span id="progWidthOut">100</span>%</div>
+            </div>
           </div>
           <div>
             <label>Text alignment</label>
@@ -136,26 +455,34 @@
         </div>
         <div class="grid cols-2">
           <div>
-            <label>Corner radius (px)</label>
-            <input id="radius" type="range" min="0" max="24" step="1" value="16" oninput="radOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="radOut">16</span> px</div>
+            <label>Corner radius</label>
+            <div class="row">
+              <input id="radius" type="range" min="0" max="24" step="1" value="16" oninput="radOut.textContent=this.value"/>
+              <div class="range-display"><span id="radOut">16</span>px</div>
+            </div>
           </div>
           <div>
-            <label>Blur (px)</label>
-            <input id="blur" type="range" min="0" max="16" step="1" value="8" oninput="blurOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="blurOut">8</span> px</div>
+            <label>Blur</label>
+            <div class="row">
+              <input id="blur" type="range" min="0" max="16" step="1" value="8" oninput="blurOut.textContent=this.value"/>
+              <div class="range-display"><span id="blurOut">8</span>px</div>
+            </div>
           </div>
         </div>
         <div class="grid cols-2">
           <div>
-            <label>Safe padding (px)</label>
-            <input id="pad" type="range" min="0" max="32" step="1" value="16" oninput="padOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="padOut">16</span> px</div>
+            <label>Safe padding</label>
+            <div class="row">
+              <input id="pad" type="range" min="0" max="32" step="1" value="16" oninput="padOut.textContent=this.value"/>
+              <div class="range-display"><span id="padOut">16</span>px</div>
+            </div>
           </div>
           <div>
-            <label>Title outline (px)</label>
-            <input id="outline" type="range" min="0" max="2" step="1" value="0" oninput="outlineOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="outlineOut">0</span> px</div>
+            <label>Title outline</label>
+            <div class="row">
+              <input id="outline" type="range" min="0" max="2" step="1" value="0" oninput="outlineOut.textContent=this.value"/>
+              <div class="range-display"><span id="outlineOut">0</span>px</div>
+            </div>
           </div>
         </div>
         <div class="grid cols-2">
@@ -192,9 +519,11 @@
         </div>
         <div class="grid cols-2">
           <div>
-            <label>Marquee speed (s)</label>
-            <input id="marq" type="range" min="8" max="30" step="1" value="18" oninput="marqOut.textContent=this.value"/>
-            <div class="badge">Current: <span id="marqOut">18</span>s</div>
+            <label>Marquee speed</label>
+            <div class="row">
+              <input id="marq" type="range" min="8" max="30" step="1" value="18" oninput="marqOut.textContent=this.value"/>
+              <div class="range-display"><span id="marqOut">18</span>s</div>
+            </div>
           </div>
         </div>
       </div>
@@ -242,14 +571,18 @@
         <h3>Background</h3>
         <div class="grid cols-2">
           <div class="check"><input id="transparent" type="checkbox" class="sw"/><label for="transparent">Transparent panel</label></div>
-          <div class="row">
-            <label>Opacity</label>
-            <input id="panelAlpha" type="range" min="0" max="100" step="1" value="72" oninput="paOut.textContent=this.value+'%'"/>
+          <div>
+            <label>Panel opacity</label>
+            <div class="row">
+              <input id="panelAlpha" type="range" min="0" max="100" step="1" value="72" oninput="paOut.textContent=this.value"/>
+              <div class="range-display"><span id="paOut">72</span>%</div>
+            </div>
           </div>
-          <div class="color-row">
-            <label style="min-width:120px">Panel color</label>
-            <input id="panelColor" type="color" value="#121212"/>
-            <span class="badge">Alpha: <span id="paOut">72%</span></span>
+          <div>
+            <label>Panel color</label>
+            <div class="color-row">
+              <input id="panelColor" type="color" value="#121212"/>
+            </div>
           </div>
         </div>
       </div>
@@ -265,7 +598,7 @@
 
     <div class="right">
       <div class="card preview-bar">
-        <div><div style="font-weight:800">Live Preview</div><div class="badge">Turn off “demo” to login inside the preview</div></div>
+        <div><div style="font-weight:700; font-size: 16px;">Live Preview</div><div class="badge">Turn off "demo" to login inside the preview</div></div>
         <div class="badge">Resize to test scaling</div>
       </div>
       <div class="card preview-wrap">
