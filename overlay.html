@@ -112,17 +112,19 @@
   .title{font-size:var(--title-size); font-weight:800; letter-spacing:0.2px;
          -webkit-mask-image: linear-gradient(90deg,#000 90%,transparent 100%);
          mask-image: linear-gradient(90deg,#000 90%,transparent 100%);
-         text-shadow:0 0 var(--outline) #000;}
+         text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 16px rgba(0,0,0,0.7), 0 0 var(--outline) #000;}
   .artist{font-size:var(--artist-size); color:var(--muted);
           -webkit-mask-image: linear-gradient(90deg,#000 92%,transparent 100%);
           mask-image: linear-gradient(90deg,#000 92%,transparent 100%);
-          text-shadow:0 0 var(--outline) #000;}
+          text-shadow: 0 2px 6px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.6), 0 0 var(--outline) #000;}
   .row{display:flex; align-items:center; gap:8px}
-  .pill{display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px}
+  .pill{display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.4);}
   .dot{width:6px; height:6px; border-radius:999px; background:var(--accent); box-shadow:0 0 8px var(--accent)}
   .progress{height:var(--bar-h); border-radius:999px; position:relative; overflow:hidden; background: rgba(255,255,255,0.18); width: var(--progress-width)}
   .bar{position:absolute; inset:0 100% 0 0; border-radius:999px; background: var(--accent)}
-  .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted); width: var(--progress-width)}
+  .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted); width: var(--progress-width);
+        text-shadow: 0 1px 4px rgba(0,0,0,0.8);}
   
   /* Text alignment classes */
   .text-left .meta { text-align: left; align-items: flex-start; }
@@ -159,6 +161,70 @@
   .compact .artist{--artist-size: clamp(11px,1.7vw,13px)}
 
   @media (max-width:560px){ :root{--disc:150px} .tonearm{display:none} }
+
+  /* Visual Effects */
+  .particles::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(2px 2px at 20px 30px, var(--accent), transparent),
+      radial-gradient(2px 2px at 40px 70px, var(--accent), transparent),
+      radial-gradient(1px 1px at 90px 40px, var(--accent), transparent),
+      radial-gradient(1px 1px at 130px 80px, var(--accent), transparent),
+      radial-gradient(2px 2px at 160px 30px, var(--accent), transparent);
+    background-size: 200px 100px;
+    animation: particles 20s linear infinite;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+  @keyframes particles {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100px); }
+  }
+
+  .color-breathing {
+    animation: breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+    50% { filter: hue-rotate(30deg) brightness(1.1); }
+  }
+
+  .album-blur .artbox {
+    filter: blur(2px) brightness(0.8);
+    transition: filter 0.3s ease;
+  }
+  .album-blur:hover .artbox {
+    filter: blur(0px) brightness(1);
+  }
+
+  .waveform::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+      var(--accent) 0%, transparent 20%, var(--accent) 40%, 
+      transparent 60%, var(--accent) 80%, transparent 100%);
+    animation: waveform 2s ease-in-out infinite;
+  }
+  @keyframes waveform {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(2); }
+  }
+
+  /* Additional Content Styles */
+  .lyrics, .genre, .stats {
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.8;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+  .genre::before { content: '🎵 '; }
+  .stats::before { content: '📊 '; }
 </style>
 </head>
 <body>
@@ -325,6 +391,32 @@ show('progress',  getBool('showprogress',true));
 show('timeRow',   getBool('showtime',true));
 show('title',     getBool('title',true));
 show('artist',    getBool('artist',true));
+
+/* visual effects */
+if(getBool('particles',false)) document.body.classList.add('particles');
+if(getBool('colorbreathing',false)) document.body.classList.add('color-breathing');
+if(getBool('waveform',false)) document.body.classList.add('waveform');
+if(getBool('albumblur',false)) document.body.classList.add('album-blur');
+
+/* additional content */
+if(getBool('lyrics',false)) {
+  const lyricsEl = document.createElement('div');
+  lyricsEl.className = 'lyrics';
+  lyricsEl.textContent = '♪ Lyrics coming soon...';
+  $('meta').appendChild(lyricsEl);
+}
+if(getBool('genre',false)) {
+  const genreEl = document.createElement('div');
+  genreEl.className = 'genre';
+  genreEl.textContent = 'Electronic • Dance';
+  $('meta').appendChild(genreEl);
+}
+if(getBool('stats',false)) {
+  const statsEl = document.createElement('div');
+  statsEl.className = 'stats';
+  statsEl.textContent = '👍 1.2M • 🔥 Popular';
+  $('meta').appendChild(statsEl);
+}
 const nextParam=p.get('next'); const showNext=(nextParam==='1') || (nextParam===null && layout==='stacked');
 show('nextRow', showNext);
 

@@ -1153,7 +1153,10 @@
   function render(){
     const u=buildURL(); 
     els.url.textContent=u; 
-    els.preview.src=u;
+    
+    // Add demo parameter to preview URL only (not to the generated URL)
+    const previewUrl = u + (u.includes('?') ? '&' : '?') + 'demo=1';
+    els.preview.src = els.demo.checked ? previewUrl : u;
   }
 
   // Tab switching
