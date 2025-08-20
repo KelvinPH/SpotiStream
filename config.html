@@ -893,31 +893,7 @@
         </div>
       </div>
 
-            <div class="card">
-              <div class="card-header">
-                <h2 class="card-title">Additional Content</h2>
-              </div>
-              <div class="card-body">
-                <div class="form-section">
-                  <div class="toggle-group">
-                    <label class="form-label">Show Lyrics</label>
-                    <input id="showLyrics" type="checkbox" class="toggle"/>
-                  </div>
-                  <div class="toggle-group">
-                    <label class="form-label">Show Genre</label>
-                    <input id="showGenre" type="checkbox" class="toggle"/>
-                  </div>
-                  <div class="toggle-group">
-                    <label class="form-label">Show Track Stats</label>
-                    <input id="showStats" type="checkbox" class="toggle"/>
-                  </div>
-                  <div class="toggle-group">
-                    <label class="form-label">Recent History</label>
-                    <input id="showHistory" type="checkbox" class="toggle"/>
-                  </div>
-        </div>
-          </div>
-        </div>
+            
       </div>
 
           <div class="tab-panel" id="advanced-tab">
@@ -946,10 +922,10 @@
                         <option value="0">Off</option>
                       </select>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        </div>
+          </div>
+        </div>
+      </div>
 
             <div class="card">
               <div class="card-header">
@@ -1022,7 +998,7 @@
                   <button id="transparentPreset" class="btn-outline">1-click Transparent</button>
                 </div>
               </div>
-            </div>
+        </div>
       </div>
     </div>
       </aside>
@@ -1054,7 +1030,7 @@
     scroll:$('scroll'), autoAccent:$('autoAccent'), marq:$('marq'),
     particles:$('particles'), colorBreathing:$('colorBreathing'), waveform:$('waveform'), 
     albumBlur:$('albumBlur'), transitionEffect:$('transitionEffect'), animSpeed:$('animSpeed'),
-    showLyrics:$('showLyrics'), showGenre:$('showGenre'), showStats:$('showStats'), showHistory:$('showHistory'),
+
     font:$('font'), shadow:$('shadow'), colorMode:$('colorMode'), accent:$('accent'), text:$('text'), muted:$('muted'),
     transparent:$('transparent'), panelAlpha:$('panelAlpha'), panelColor:$('panelColor'),
     demo:$('demo'), transparentPreset:$('transparentPreset'),
@@ -1066,20 +1042,20 @@
   document.querySelectorAll('[data-preset]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const p = btn.dataset.preset;
-      if(p==='record'){ setState({layout:'record',align:'left',theme:'spotify',accentstyle:'solid',disc:200,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='card'){ setState({layout:'card',align:'left',theme:'obsdark',accentstyle:'solid',disc:220,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='bar'){ setState({layout:'bar',align:'left',theme:'minimal',accentstyle:'solid',disc:0,progressWidth:100,textAlign:'left',compact:1,spin:0,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='stacked'){ setState({layout:'stacked',align:'center',theme:'elegant',accentstyle:'solid',disc:180,progressWidth:100,textAlign:'center',compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='transparent'){ setState({layout:'card',align:'left',theme:'minimal',accentstyle:'solid',disc:200,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0,transparent:1}); }
-      if(p==='gaming'){ setState({layout:'compact',align:'right',theme:'gaming',accentstyle:'glow',disc:200,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:1,colorBreathing:1,waveform:0,albumBlur:0,transitionEffect:'slide',animSpeed:1.2,showLyrics:0,showGenre:1,showStats:0,showHistory:0}); }
-      if(p==='lofi'){ setState({layout:'wide',align:'center',theme:'lofi',accentstyle:'solid',disc:160,progressWidth:80,textAlign:'center',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:1,waveform:0,albumBlur:1,transitionEffect:'fade',animSpeed:0.8,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='cyberpunk'){ setState({layout:'floating',align:'right',theme:'cyberpunk',accentstyle:'gradient',disc:140,progressWidth:100,textAlign:'left',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:1,colorBreathing:1,waveform:1,albumBlur:0,transitionEffect:'slide',animSpeed:1.5,showLyrics:0,showGenre:1,showStats:1,showHistory:0}); }
-      if(p==='elegant'){ setState({layout:'split',align:'center',theme:'elegant',accentstyle:'solid',disc:200,progressWidth:90,textAlign:'center',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:1,transitionEffect:'fade',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='party'){ setState({layout:'ticker',align:'left',theme:'party',accentstyle:'glow',disc:60,progressWidth:100,textAlign:'left',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:0,showTime:0,showTitle:1,showArtist:1,showNext:0,particles:1,colorBreathing:1,waveform:1,albumBlur:0,transitionEffect:'bounce',animSpeed:2,showLyrics:0,showGenre:1,showStats:0,showHistory:0}); }
-      if(p==='cozy'){ setState({layout:'corner',align:'right',theme:'cozy',accentstyle:'solid',disc:60,progressWidth:100,textAlign:'right',compact:1,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:0,showTime:0,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:1,waveform:0,albumBlur:1,transitionEffect:'fade',animSpeed:0.7,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='streamer'){ setState({layout:'floating',align:'right',theme:'neon',accentstyle:'glow',disc:120,progressWidth:100,textAlign:'left',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='focus'){ setState({layout:'compact',align:'left',theme:'focus',accentstyle:'solid',disc:80,progressWidth:100,textAlign:'left',compact:1,spin:0,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
-      if(p==='ultraminimal'){ setState({layout:'bar',align:'left',theme:'monochrome',accentstyle:'solid',disc:0,progressWidth:60,textAlign:'left',compact:1,spin:0,labelStatic:0,tonearm:0,showStatus:0,showProgress:0,showTime:0,showTitle:1,showArtist:0,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,showLyrics:0,showGenre:0,showStats:0,showHistory:0}); }
+      if(p==='record'){ setState({layout:'record',align:'left',theme:'spotify',accentstyle:'solid',disc:200,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
+      if(p==='card'){ setState({layout:'card',align:'left',theme:'obsdark',accentstyle:'solid',disc:220,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
+      if(p==='bar'){ setState({layout:'bar',align:'left',theme:'minimal',accentstyle:'solid',disc:0,progressWidth:100,textAlign:'left',compact:1,spin:0,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
+      if(p==='stacked'){ setState({layout:'stacked',align:'center',theme:'elegant',accentstyle:'solid',disc:180,progressWidth:100,textAlign:'center',compact:0,spin:1,labelStatic:0,tonearm:1,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
+      if(p==='transparent'){ setState({layout:'card',align:'left',theme:'minimal',accentstyle:'solid',disc:200,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1,transparent:1}); }
+      if(p==='gaming'){ setState({layout:'compact',align:'right',theme:'gaming',accentstyle:'glow',disc:200,progressWidth:100,textAlign:'auto',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:1,colorBreathing:1,waveform:0,albumBlur:0,transitionEffect:'slide',animSpeed:1.2}); }
+      if(p==='lofi'){ setState({layout:'wide',align:'center',theme:'lofi',accentstyle:'solid',disc:160,progressWidth:80,textAlign:'center',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:1,waveform:0,albumBlur:1,transitionEffect:'fade',animSpeed:0.8}); }
+      if(p==='cyberpunk'){ setState({layout:'floating',align:'right',theme:'cyberpunk',accentstyle:'gradient',disc:140,progressWidth:100,textAlign:'left',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:1,colorBreathing:1,waveform:1,albumBlur:0,transitionEffect:'slide',animSpeed:1.5}); }
+      if(p==='elegant'){ setState({layout:'split',align:'center',theme:'elegant',accentstyle:'solid',disc:200,progressWidth:90,textAlign:'center',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:1,transitionEffect:'fade',animSpeed:1}); }
+      if(p==='party'){ setState({layout:'ticker',align:'left',theme:'party',accentstyle:'glow',disc:60,progressWidth:100,textAlign:'left',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:0,showTime:0,showTitle:1,showArtist:1,showNext:0,particles:1,colorBreathing:1,waveform:1,albumBlur:0,transitionEffect:'bounce',animSpeed:2}); }
+      if(p==='cozy'){ setState({layout:'corner',align:'right',theme:'cozy',accentstyle:'solid',disc:60,progressWidth:100,textAlign:'right',compact:1,spin:1,labelStatic:0,tonearm:0,showStatus:0,showProgress:0,showTime:0,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:1,waveform:0,albumBlur:1,transitionEffect:'fade',animSpeed:0.7}); }
+      if(p==='streamer'){ setState({layout:'floating',align:'right',theme:'neon',accentstyle:'glow',disc:120,progressWidth:100,textAlign:'left',compact:0,spin:1,labelStatic:0,tonearm:0,showStatus:1,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
+      if(p==='focus'){ setState({layout:'compact',align:'left',theme:'focus',accentstyle:'solid',disc:80,progressWidth:100,textAlign:'left',compact:1,spin:0,labelStatic:0,tonearm:0,showStatus:0,showProgress:1,showTime:1,showTitle:1,showArtist:1,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
+      if(p==='ultraminimal'){ setState({layout:'bar',align:'left',theme:'monochrome',accentstyle:'solid',disc:0,progressWidth:60,textAlign:'left',compact:1,spin:0,labelStatic:0,tonearm:0,showStatus:0,showProgress:0,showTime:0,showTitle:1,showArtist:0,showNext:0,particles:0,colorBreathing:0,waveform:0,albumBlur:0,transitionEffect:'none',animSpeed:1}); }
       render();
     });
   });
@@ -1105,8 +1081,7 @@
       particles:+(els.particles?.checked || false), colorBreathing:+(els.colorBreathing?.checked || false), 
       waveform:+(els.waveform?.checked || false), albumBlur:+(els.albumBlur?.checked || false),
       transitionEffect:els.transitionEffect?.value || 'none', animSpeed:els.animSpeed?.value || 1,
-      showLyrics:+(els.showLyrics?.checked || false), showGenre:+(els.showGenre?.checked || false), 
-      showStats:+(els.showStats?.checked || false), showHistory:+(els.showHistory?.checked || false),
+
       font:els.font.value, shadow:els.shadow.value, colorMode:els.colorMode.value, 
       accent:els.accent.value, text:els.text.value, muted:els.muted.value,
       transparent:+els.transparent.checked, panelAlpha:els.panelAlpha.value, panelColor:els.panelColor.value,
@@ -1149,10 +1124,7 @@
     if(s.albumBlur) q.set('albumblur','1');
     if(s.transitionEffect && s.transitionEffect!=='none') q.set('transition', s.transitionEffect);
     if(s.animSpeed && s.animSpeed!=='1') q.set('animspeed', s.animSpeed);
-    if(s.showLyrics) q.set('lyrics','1');
-    if(s.showGenre) q.set('genre','1');
-    if(s.showStats) q.set('stats','1');
-    if(s.showHistory) q.set('history','1');
+
     if(s.font) q.set('font', s.font);
     if(s.shadow==='0') q.set('shadow','0');
     if(s.colorMode==='custom'){

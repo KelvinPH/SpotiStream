@@ -26,7 +26,8 @@
   .wrap{width:100%; height:100%; box-sizing:border-box; padding:var(--pad);
         display:flex; align-items:center; justify-content:center;
         backdrop-filter: blur(var(--blur)) saturate(120%);
-        background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);}
+        background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
+        position: relative;}
   .inner{width:100%; max-width: var(--max-w); display:grid; gap: var(--gap); align-items:center;}
 
   /* Layouts + media placement */
@@ -112,19 +113,19 @@
   .title{font-size:var(--title-size); font-weight:800; letter-spacing:0.2px;
          -webkit-mask-image: linear-gradient(90deg,#000 90%,transparent 100%);
          mask-image: linear-gradient(90deg,#000 90%,transparent 100%);
-         text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 16px rgba(0,0,0,0.7), 0 0 var(--outline) #000;}
+         text-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 0 var(--outline) #000;}
   .artist{font-size:var(--artist-size); color:var(--muted);
           -webkit-mask-image: linear-gradient(90deg,#000 92%,transparent 100%);
           mask-image: linear-gradient(90deg,#000 92%,transparent 100%);
-          text-shadow: 0 2px 6px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.6), 0 0 var(--outline) #000;}
+          text-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 0 var(--outline) #000;}
   .row{display:flex; align-items:center; gap:8px}
   .pill{display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.4);}
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5); box-shadow: 0 1px 4px rgba(0,0,0,0.3);}
   .dot{width:6px; height:6px; border-radius:999px; background:var(--accent); box-shadow:0 0 8px var(--accent)}
   .progress{height:var(--bar-h); border-radius:999px; position:relative; overflow:hidden; background: rgba(255,255,255,0.18); width: var(--progress-width)}
   .bar{position:absolute; inset:0 100% 0 0; border-radius:999px; background: var(--accent)}
   .time{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; color:var(--muted); width: var(--progress-width);
-        text-shadow: 0 1px 4px rgba(0,0,0,0.8);}
+        text-shadow: 0 1px 2px rgba(0,0,0,0.4);}
   
   /* Text alignment classes */
   .text-left .meta { text-align: left; align-items: flex-start; }
@@ -142,7 +143,25 @@
 
   /* Accent styles */
   .accent-glow .dot{ box-shadow:0 0 12px var(--accent), 0 0 24px var(--accent); }
+  .accent-glow .bar{ box-shadow: 0 0 8px var(--accent); }
   .accent-gradient .bar{ background: linear-gradient(90deg, var(--accent), rgba(255,255,255,0.9)); }
+  .accent-pulse .dot{ animation: pulse 2s ease-in-out infinite; }
+  .accent-pulse .bar{ animation: pulse 2s ease-in-out infinite; }
+  .accent-rainbow .bar{ background: linear-gradient(90deg, #ff0080, #ff8000, #ffff00, #80ff00, #00ff80, #0080ff, #8000ff); }
+  .accent-rainbow .dot{ background: linear-gradient(45deg, #ff0080, #ff8000, #ffff00, #80ff00, #00ff80, #0080ff, #8000ff); }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+  }
+  
+  /* No shadow mode */
+  .no-shadow .title, .no-shadow .artist, .no-shadow .pill, .no-shadow .time {
+    text-shadow: none !important;
+  }
+  .no-shadow .pill {
+    box-shadow: none !important;
+  }
 
   /* Marquee */
   .marquee{ position:relative; overflow:hidden; }
@@ -199,7 +218,7 @@
     filter: blur(0px) brightness(1);
   }
 
-  .waveform::after {
+  .waveform .wrap::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -216,15 +235,7 @@
     50% { transform: scaleY(2); }
   }
 
-  /* Additional Content Styles */
-  .lyrics, .genre, .stats {
-    font-size: 11px;
-    color: var(--muted);
-    opacity: 0.8;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  }
-  .genre::before { content: '🎵 '; }
-  .stats::before { content: '📊 '; }
+
 </style>
 </head>
 <body>
@@ -272,6 +283,7 @@ const THEMES = {
   ytred:{panel:'rgba(26,8,8,0.66)',text:'#ffecec',muted:'#ffb4b4',accent:'#FF0033',radius:16,blur:8},
   aqua:{panel:'rgba(10,24,24,0.55)',text:'#e6fffb',muted:'#a8fff2',accent:'#12d6c5',radius:16,blur:8},
   cyber:{panel:'rgba(6,8,18,0.62)',text:'#d9f2ff',muted:'#8dd6ff',accent:'#00ffe1',radius:16,blur:10},
+  cyberpunk:{panel:'rgba(0,0,20,0.9)',text:'#00ffff',muted:'#0099cc',accent:'#ff0080',radius:16,blur:10},
   pastel:{panel:'rgba(28,25,23,0.45)',text:'#fff7ed',muted:'#fed7aa',accent:'#f9a8d4',radius:18,blur:6},
   
   // New Creative Themes
@@ -383,6 +395,11 @@ if (textAlign === 'auto') {
 const astyle=(p.get('accentstyle')||'solid').toLowerCase();
 if(astyle==='glow') document.body.classList.add('accent-glow');
 else if(astyle==='gradient') document.body.classList.add('accent-gradient');
+else if(astyle==='pulse') document.body.classList.add('accent-pulse');
+else if(astyle==='rainbow') document.body.classList.add('accent-rainbow');
+
+/* shadow control */
+if(p.get('shadow')==='0') document.body.classList.add('no-shadow');
 
 /* element toggles */
 const show=(id,flag)=>{ const n=$(id); if(!n) return; n.style.display = flag ? '' : 'none'; };
@@ -398,25 +415,7 @@ if(getBool('colorbreathing',false)) document.body.classList.add('color-breathing
 if(getBool('waveform',false)) document.body.classList.add('waveform');
 if(getBool('albumblur',false)) document.body.classList.add('album-blur');
 
-/* additional content */
-if(getBool('lyrics',false)) {
-  const lyricsEl = document.createElement('div');
-  lyricsEl.className = 'lyrics';
-  lyricsEl.textContent = '♪ Lyrics coming soon...';
-  $('meta').appendChild(lyricsEl);
-}
-if(getBool('genre',false)) {
-  const genreEl = document.createElement('div');
-  genreEl.className = 'genre';
-  genreEl.textContent = 'Electronic • Dance';
-  $('meta').appendChild(genreEl);
-}
-if(getBool('stats',false)) {
-  const statsEl = document.createElement('div');
-  statsEl.className = 'stats';
-  statsEl.textContent = '👍 1.2M • 🔥 Popular';
-  $('meta').appendChild(statsEl);
-}
+
 const nextParam=p.get('next'); const showNext=(nextParam==='1') || (nextParam===null && layout==='stacked');
 show('nextRow', showNext);
 
@@ -527,7 +526,7 @@ function initSetup(){
 const demo=getBool('demo',false);
 function startDemo(){
   showSetup(false);
-  const demoImg='assets/@demo-albumcover.jpg';
+  const demoImg='assets/demo-albumcover.jpg';
   const payload={ item:{ name:'Midnight Drive (Demo)', artists:[{name:'Lumen & Co'}], duration_ms:212000, album:{images:[{url:demoImg}] } }, is_playing:true, progress_ms:42000 };
   renderTrack(payload);
   setInterval(()=>{ playing=true; progressMs+=250; if(progressMs>durationMs) progressMs=0; setProgress(progressMs/durationMs); },250);
