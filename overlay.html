@@ -36,7 +36,45 @@
   .layout-card.right   .inner{grid-template-columns: minmax(320px,1fr) var(--disc); grid-template-areas: "meta art";}
   .layout-bar          .inner{grid-template-columns:1fr; grid-template-areas:"meta"; padding:4px 0;}
   .layout-stacked      .inner{grid-template-columns:1fr; grid-template-areas:"disc" "meta"; place-items:center; text-align:center;}
+  
+  /* New Creative Layouts */
+  .layout-compact      .inner{grid-template-columns: 80px 1fr; grid-template-areas: "art meta"; gap:12px; padding:8px;}
+  .layout-compact .disc, .layout-compact .artbox{width:80px; height:80px;}
+  .layout-compact .wrap{padding:8px;}
+  
+  .layout-wide         .inner{grid-template-columns: var(--disc) 1fr var(--disc); grid-template-areas: "art meta art2"; gap:32px;}
+  .layout-wide .artbox:last-child{grid-area:art2; opacity:0.3; filter:blur(2px);}
+  
+  .layout-split.left   .inner{grid-template-columns: 1fr; grid-template-areas: "art" "meta"; gap:16px; text-align:center;}
+  .layout-split.right  .inner{grid-template-columns: 1fr; grid-template-areas: "meta" "art"; gap:16px; text-align:center;}
+  .layout-split.center .inner{grid-template-columns: 1fr; grid-template-areas: "art" "meta"; gap:16px; text-align:center;}
+  .layout-split.top    .inner{grid-template-columns: 1fr; grid-template-areas: "art" "meta"; gap:16px; text-align:center;}
+  .layout-split.bottom .inner{grid-template-columns: 1fr; grid-template-areas: "meta" "art"; gap:16px; text-align:center;}
+  
+  .layout-floating     .wrap{position:fixed; top:20px; right:20px; width:300px; height:auto; backdrop-filter:blur(20px); z-index:999;}
+  .layout-floating     .inner{width:100%; max-width:none;}
+  
+  .layout-corner       .inner{grid-template-columns: 60px 1fr; grid-template-areas: "art meta"; gap:8px; padding:6px;}
+  .layout-corner .disc, .layout-corner .artbox{width:60px; height:60px;}
+  .layout-corner .wrap{padding:6px; position:fixed; bottom:20px; right:20px; width:280px; height:auto;}
+  
+  .layout-ticker       .inner{grid-template-columns: 60px 1fr; grid-template-areas: "art meta"; gap:12px; padding:8px 16px;}
+  .layout-ticker .meta{overflow:hidden; white-space:nowrap;}
+  .layout-ticker .title, .layout-ticker .artist{
+    display:inline-block; 
+    animation: scroll-left 20s linear infinite;
+    white-space:nowrap;
+  }
+  .layout-ticker .wrap{position:fixed; bottom:0; left:0; right:0; width:100%; border-radius:0; height:auto;}
+  
+  @keyframes scroll-left{from{transform:translateX(100%)} to{transform:translateX(-100%)}}
+  
   .layout-bar .pill, .layout-bar .disc, .layout-bar .artbox{display:none}
+  .layout-compact .pill{display:none}
+  .layout-corner .pill, .layout-corner .progress, .layout-corner .time{display:none}
+  .layout-ticker .pill, .layout-ticker .progress, .layout-ticker .time{display:none}
+  .layout-floating .pill{font-size:12px; padding:4px 8px;}
+  .layout-split .pill{margin:0 auto;}
 
   .meta{grid-area:meta; min-width:0; display:grid; gap:10px; align-content:center; z-index:2}
   .disc, .artbox{z-index:1}
@@ -168,7 +206,23 @@ const THEMES = {
   ytred:{panel:'rgba(26,8,8,0.66)',text:'#ffecec',muted:'#ffb4b4',accent:'#FF0033',radius:16,blur:8},
   aqua:{panel:'rgba(10,24,24,0.55)',text:'#e6fffb',muted:'#a8fff2',accent:'#12d6c5',radius:16,blur:8},
   cyber:{panel:'rgba(6,8,18,0.62)',text:'#d9f2ff',muted:'#8dd6ff',accent:'#00ffe1',radius:16,blur:10},
-  pastel:{panel:'rgba(28,25,23,0.45)',text:'#fff7ed',muted:'#fed7aa',accent:'#f9a8d4',radius:18,blur:6}
+  pastel:{panel:'rgba(28,25,23,0.45)',text:'#fff7ed',muted:'#fed7aa',accent:'#f9a8d4',radius:18,blur:6},
+  
+  // New Creative Themes
+  gaming:{panel:'rgba(0,0,0,0.85)',text:'#00ff88',muted:'#66ffaa',accent:'#ff0066',radius:16,blur:12},
+  lofi:{panel:'rgba(42,24,16,0.6)',text:'#f4e4c1',muted:'#d4b896',accent:'#e67e22',radius:20,blur:4},
+  retro:{panel:'rgba(26,10,42,0.7)',text:'#ff6ec7',muted:'#c77dff',accent:'#7209b7',radius:12,blur:6},
+  elegant:{panel:'rgba(248,249,250,0.9)',text:'#1a202c',muted:'#4a5568',accent:'#3182ce',radius:18,blur:8},
+  party:{panel:'rgba(0,0,0,0.8)',text:'#ffffff',muted:'#cccccc',accent:'#ff1493',radius:16,blur:10},
+  cozy:{panel:'rgba(45,24,16,0.65)',text:'#f7e6d3',muted:'#d4b896',accent:'#cd853f',radius:16,blur:6},
+  focus:{panel:'rgba(0,0,0,0.3)',text:'#e2e8f0',muted:'#a0aec0',accent:'#4299e1',radius:8,blur:2},
+  sunset:{panel:'rgba(255,94,77,0.2)',text:'#2d3748',muted:'#4a5568',accent:'#ed8936',radius:16,blur:8},
+  ocean:{panel:'rgba(0,119,190,0.3)',text:'#ffffff',muted:'#b3d9ff',accent:'#00d4ff',radius:16,blur:8},
+  forest:{panel:'rgba(34,139,34,0.3)',text:'#f0fff0',muted:'#98fb98',accent:'#32cd32',radius:16,blur:6},
+  midnight:{panel:'rgba(25,25,112,0.4)',text:'#e6e6fa',muted:'#c5c5ff',accent:'#9370db',radius:16,blur:10},
+  aurora:{panel:'rgba(0,100,100,0.3)',text:'#f0ffff',muted:'#afeeee',accent:'#40e0d0',radius:18,blur:8},
+  gradient:{panel:'linear-gradient(135deg, rgba(255,0,150,0.3), rgba(0,204,255,0.3))',text:'#ffffff',muted:'#e0e0e0',accent:'#ff6b9d',radius:16,blur:8},
+  monochrome:{panel:'rgba(0,0,0,0.2)',text:'#ffffff',muted:'#888888',accent:'#ffffff',radius:4,blur:0,shadow:0}
 };
 const FONTS = {
   inter:'https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap',
@@ -194,8 +248,27 @@ document.body.className=`layout-${layout} ${align}`;
 applyVars(THEMES[(p.get('theme')||'spotify').toLowerCase()]);
 
 const discEl=$('disc'), artbox=$('artbox'), tonearm=$('tonearm');
-if(layout==='card'){ discEl.style.display='none'; artbox.classList.remove('hidden'); }
-if(layout!=='record'){ tonearm.style.display='none'; }
+
+// Layout-specific element handling
+if(layout==='card'){ 
+  discEl.style.display='none'; 
+  artbox.classList.remove('hidden'); 
+}
+if(layout==='compact' || layout==='corner' || layout==='ticker' || layout==='split' || layout==='floating'){ 
+  discEl.style.display='none'; 
+  artbox.classList.remove('hidden'); 
+}
+if(layout==='wide'){
+  discEl.style.display='none'; 
+  artbox.classList.remove('hidden');
+  // Create duplicate artbox for wide layout
+  const artbox2 = artbox.cloneNode(true);
+  artbox2.id = 'artbox2';
+  artbox.parentNode.appendChild(artbox2);
+}
+if(layout!=='record'){ 
+  tonearm.style.display='none'; 
+}
 
 /* overrides */
 const map={accent:'--accent',panel:'--panel',text:'--text',muted:'--muted'};
